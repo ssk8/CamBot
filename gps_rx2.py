@@ -6,12 +6,22 @@ import struct
 from math import radians, cos, sin, asin, sqrt, atan2, degrees
 
 
-irq_gpio_pin = 23
-
-radio = RF24(22, 0)
-
+radio = RF24(27, 0)
+irq_gpio_pin = 17
+pipes = [0xF0F0F0F0E1, 0xF0F0F0F0D2]
 receive_payload = bytearray()
 payload_struct_format = 'ffIIhhi?'
+
+
+class Rx_data():
+    def __init__(self, latitude=0, longitude=0, gps_time="0000000", gps_date="010120", speed=0, course=0, altitude=0, rec=0):
+        self.latitude = latitude
+        self.longitude = longitude
+        self.time = datetime.strptime(f'{str(gps_date)[0:4]}20{str(gps_date)[-2:]}{str(gps_time).zfill(8)[:-2]}+00:00', '%d%m%Y%H%M%S%z')
+        self.speed = speed
+        self.course = course
+        self.altitude = altitude
+        self.rec = rec
 
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -22,22 +32,16 @@ def haversine(lat1, lon1, lat2, lon2):
     lat2 = radians(lat2)
     a = sin(dLat/2)**2 + cos(lat1)*cos(lat2)*sin(dLon/2)**2
     c = 2*asin(sqrt(a))
-    bearing = degrees(atan2(cos(lat1)*sin(lat2)-sin(lat1)*cos(lat2)*cos(lon2-lon1), sin(lon2-lon1)*cos(lat2)))
-    return R * c, bearing
+    return R * c
 
 
-# print(haversine(lat1, lon1, lat2, lon2))
-
-
-class Rx_data():
-    def __init__(self, latitude=0, longitude=0, gps_time="0000000", gps_date="010120", speed=0, course=0, altitude=0, rec=0):
-        self.latitude = latitude
-        self.longitude = longitude
-        self.time = datetime.strptime(f'{str(gps_date)[0:4]}20{str(gps_date)[-2:]}{str(gps_time).zfill(8)[:-2]}+00:00','%d%m%Y%H%M%S%z')
-        self.speed = speed
-        self.course = course
-        self.altitude = altitude
-        self.rec = rec
+def bearing(pointA, pointB):
+    lat1 = radians(pointA[0])
+    lat2 = radians(pointB[0])
+    diffLong = radians(pointB[1] - pointA[1])
+    x = sin(diffLong) * cos(lat2)
+    y = cos(lat1) * sin(lat2) - (sin(lat1) * cos(lat2) * cos(diffLong))
+    return (degrees(atan2(x, y)) + 360) % 360
 
 
 def try_read_data(channel=0):
@@ -51,8 +55,6 @@ def try_read_data(channel=0):
 
 
 def start_radio():
-    pipes = [0xF0F0F0F0E1, 0xF0F0F0F0D2]
-
     radio.begin()
     radio.enableDynamicPayloads()
     radio.setRetries(5, 15)
@@ -68,11 +70,11 @@ def start_radio():
 
 
 def loop():
-
     while 1:
         time.sleep(1)
         if receive_payload:
             gps_data = Rx_data(*struct.unpack(payload_struct_format, receive_payload))
+            print(f'{gps_data.latitude} {gps_data.longitude} \n  {(gps_data.time + timedelta(hours=-5)).strftime("%x %X ")}')
 
 
 def main():
