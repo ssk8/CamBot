@@ -25,10 +25,6 @@ def haversine(lat1, lon1, lat2, lon2):
     bearing = degrees(atan2(cos(lat1)*sin(lat2)-sin(lat1)*cos(lat2)*cos(lon2-lon1), sin(lon2-lon1)*cos(lat2)))
     return R * c, bearing
 
-# lon1 = -103.548851
-# lat1 = 32.0004311
-# lon2 = -103.6041946
-# lat2 = 33.374939
 
 # print(haversine(lat1, lon1, lat2, lon2))
 
@@ -72,23 +68,11 @@ def start_radio():
 
 
 def loop():
-    salina = Rx_data(latitude=38.840278, longitude=-97.611389)
-    beloit = Rx_data(latitude=39.462778, longitude=-98.109444)
-    linc = Rx_data(latitude=40.808889,longitude=-96.678889)
+
     while 1:
         time.sleep(1)
         if receive_payload:
             gps_data = Rx_data(*struct.unpack(payload_struct_format, receive_payload))
-            print(f'{gps_data.latitude} {gps_data.longitude} \n  {(gps_data.time + timedelta(hours=-5)).strftime("%x %X ")}')
-            
-            print(f'dist to Salina = {haversine(salina.latitude, salina.longitude, gps_data.latitude, gps_data.longitude)}')
-            print(f'dist to Salina = {haversine(gps_data.latitude, gps_data.longitude, salina.latitude, salina.longitude, )}')
-
-            print(f'dist to beloit = {haversine(beloit.latitude, beloit.longitude, gps_data.latitude, gps_data.longitude)}')
-            print(f'dist to beloit = {haversine(gps_data.latitude, gps_data.longitude, beloit.latitude, beloit.longitude)}')
-
-            print(f'dist to linc = {haversine(linc.latitude, linc.longitude, gps_data.latitude, gps_data.longitude)}')
-            print(f'dist to linc = {haversine(gps_data.latitude, gps_data.longitude, linc.latitude, linc.longitude)}')
 
 
 def main():
