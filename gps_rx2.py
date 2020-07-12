@@ -44,7 +44,7 @@ def bearing(pointA, pointB):
     return (degrees(atan2(x, y)) + 360) % 360
 
 
-def try_read_data(channel=0):
+def read_data(channel=0):
     global receive_payload
     if radio.available():
         while radio.available():
@@ -62,7 +62,7 @@ def start_radio():
 
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(irq_gpio_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.add_event_detect(irq_gpio_pin, GPIO.FALLING, callback=try_read_data)
+    GPIO.add_event_detect(irq_gpio_pin, GPIO.FALLING, callback=read_data)
 
     #radio.openWritingPipe(pipes[1])
     radio.openReadingPipe(1, pipes[0])
