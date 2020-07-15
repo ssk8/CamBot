@@ -10,18 +10,18 @@ radio = RF24(17, 1)
 irq_gpio_pin = 27
 pipes = [0xF0F0F0F0E1, 0xF0F0F0F0D2]
 receive_payload = bytearray()
-payload_struct_format = 'ffIIhhi?'
+payload_struct_format = 'ffIIhhi????'
 
 
 class Rx_data():
-    def __init__(self, latitude=0, longitude=0, gps_time="0000000", gps_date="010120", speed=0, course=0, altitude=0, rec=0):
+    def __init__(self, latitude=0, longitude=0, gps_time="0000000", gps_date="010120", speed=0, course=0, altitude=0, button1=0, button2=0, button3=0, button4=0):
         self.latitude = latitude
         self.longitude = longitude
         self.time = datetime.strptime(f'{str(gps_date)[0:4]}20{str(gps_date)[-2:]}{str(gps_time).zfill(8)[:-2]}+00:00', '%d%m%Y%H%M%S%z')
         self.speed = speed
         self.course = course
         self.altitude = altitude
-        self.rec = rec
+        self.button1 = button1
 
 
 def read_data(channel=0):
@@ -55,6 +55,8 @@ def loop():
         if receive_payload:
             gps_data = Rx_data(*struct.unpack(payload_struct_format, receive_payload))
             print(f'{gps_data.latitude} {gps_data.longitude} \n  {(gps_data.time + timedelta(hours=-5)).strftime("%x %X ")}')
+            #print(f'{gps_data.latitude} {gps_data.longitude}') 
+            #print(f'{receive_payload} \n length: {len(receive_payload)}')
 
 
 def main():
