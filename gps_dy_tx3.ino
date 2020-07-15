@@ -1,11 +1,10 @@
-
 #include <SPI.h>
 #include "nRF24L01.h"
 #include "RF24.h"
 #include <TinyGPS++.h>
 
 
-RF24 radio(7,8);
+RF24 radio(A4,A5);
 TinyGPSPlus gps;
 
 const uint64_t pipes[2] = { 0xF0F0F0F0E1LL, 0xF0F0F0F0D2LL };
