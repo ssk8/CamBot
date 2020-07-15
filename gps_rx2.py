@@ -6,8 +6,8 @@ import struct
 from math import radians, cos, sin, asin, sqrt, atan2, degrees
 
 
-radio = RF24(27, 0)
-irq_gpio_pin = 17
+radio = RF24(17, 1)
+irq_gpio_pin = 27
 pipes = [0xF0F0F0F0E1, 0xF0F0F0F0D2]
 receive_payload = bytearray()
 payload_struct_format = 'ffIIhhi?'
@@ -22,26 +22,6 @@ class Rx_data():
         self.course = course
         self.altitude = altitude
         self.rec = rec
-
-
-def haversine(lat1, lon1, lat2, lon2):
-    R = 3959.87433  #mi or 6372.8 km
-    dLat = radians(lat2 - lat1)
-    dLon = radians(lon2 - lon1)
-    lat1 = radians(lat1)
-    lat2 = radians(lat2)
-    a = sin(dLat/2)**2 + cos(lat1)*cos(lat2)*sin(dLon/2)**2
-    c = 2*asin(sqrt(a))
-    return R * c
-
-
-def bearing(pointA, pointB):
-    lat1 = radians(pointA[0])
-    lat2 = radians(pointB[0])
-    diffLong = radians(pointB[1] - pointA[1])
-    x = sin(diffLong) * cos(lat2)
-    y = cos(lat1) * sin(lat2) - (sin(lat1) * cos(lat2) * cos(diffLong))
-    return (degrees(atan2(x, y)) + 360) % 360
 
 
 def read_data(channel=0):
