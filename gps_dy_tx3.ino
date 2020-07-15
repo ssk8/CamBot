@@ -17,7 +17,10 @@ struct GPS_data {
   short speed;
   short course;
   int32_t altitude;
-  bool rec = false;
+  bool button1 = false;
+  bool button2 = false;
+  bool button3 = false;  
+  bool button4 = false;
 } gps_data;
 
 void setup(void)
@@ -51,12 +54,12 @@ void loop(void)
     gps_data.speed = (short)gps.speed.mph();
     gps_data.course = (short)gps.course.value();
     gps_data.altitude = gps.altitude.value();
-    gps_data.rec = false;
+    gps_data.button1 = false;
     
-    Serial.print(gps.time.value());
-    Serial.print("  ");
-    Serial.println(gps_data.gps_time);
-    Serial.println(sizeof(GPS_data));
+//    Serial.print(gps.time.value());
+//    Serial.print("  ");
+//    Serial.println(gps_data.gps_time);
+//    Serial.println(sizeof(GPS_data));
     radio.write( &gps_data, sizeof(GPS_data) ); 
   }
   
