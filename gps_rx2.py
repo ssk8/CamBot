@@ -4,6 +4,7 @@ from RF24 import RF24
 import RPi.GPIO as GPIO
 import struct
 from math import radians, cos, sin, asin, sqrt, atan2, degrees
+import picamera
 
 
 radio = RF24(17, 1)
@@ -49,19 +50,56 @@ def start_radio():
     radio.startListening()
 
 
-def loop():
-    while 1:
-        time.sleep(1)
-        if receive_payload:
-            gps_data = Rx_data(*struct.unpack(payload_struct_format, receive_payload))
-            print(f'{gps_data.latitude} {gps_data.longitude} \n  {(gps_data.time + timedelta(hours=-5)).strftime("%x %X ")}')
-            #print(f'{gps_data.latitude} {gps_data.longitude}') 
-            #print(f'{receive_payload} \n length: {len(receive_payload)}')
+def bearing(base, mobile):
+    base_coords, mobile_coords = (base.latitude, base.longitude), (mobile.latitude, mobile.longitude)
+    lat1 = radians(base_coords[0])
+    lat2 = radians(mobile_coords[0])
+    diffLong = radians(mobile_coords[1] - base_coords[1])
+    x = sin(diffLong) * cos(lat2)
+    y = cos(lat1) * sin(lat2) - (sin(lat1) * cos(lat2) * cos(diffLong))
+    return (degrees(atan2(x, y)) + 360) % 360
+
+
+def rec_loop():
+
+    while (dt.datetime.now() - start).seconds < 30:
+        camera.annotate_text = dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        camera.wait_recording(0.2)
+    camera.stop_recording()
+
+def start_camera():
+    camera = picamera.PiCamera(resolution=(1280, 720), framerate=24)
+    camera.annotate_foreground = picamera.Color('black')
+    camera.annotate_text_size = 14
+    #camera.annotate_background = picamera.Color('white')
+    return camera
 
 
 def main():
     start_radio()
-    loop()
+    camera = start_camera()
+    last_payload = bytearray()
+    last_button1 = False
+    try:
+        while True:
+            if receive_payload != last_payload:
+                gps_data = Rx_data(*struct.unpack(payload_struct_format, receive_payload))
+                if gps_data.button1 and not last_button1:
+                    last_button1 = gps_data.button1
+                    camera.start_recording(f"{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.h264")
+                    print('recording')
+                elif not gps_data.button1 and last_button1:
+                    last_button1 = gps_data.button1
+                    camera.stop_recording()
+                    print('stopped recording')
+                #time.sleep(.2)
+                #print(f'{gps_data.latitude} {gps_data.longitude} \n  {(gps_data.time + timedelta(hours=-5)).strftime("%x %X ")}')
+                camera.annotate_text = f'speed: {str(gps_data.speed).zfill(2)} mph     altitude: {(gps_data.altitude*0.0328084):.0f} ft       {(gps_data.time + timedelta(hours=-5)).strftime("%x %X ")}{30*" "}'
+                #print(f'{gps_data.latitude} {gps_data.longitude}') 
+                #print(f'{receive_payload} \n length: {len(receive_payload)}')
+                last_payload = receive_payload
+    except KeyboardInterrupt:
+        print(f'\ngoodbye')
 
 
 if __name__ == "__main__":
