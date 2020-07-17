@@ -1,9 +1,12 @@
+#!/usr/bin/python3
+
 import time
 from datetime import datetime, timedelta
 from RF24 import RF24
 import RPi.GPIO as GPIO
 import struct
 from math import radians, cos, sin, asin, sqrt, atan2, degrees
+import serial
 import picamera
 
 
@@ -60,45 +63,71 @@ def bearing(base, mobile):
     return (degrees(atan2(x, y)) + 360) % 360
 
 
-def rec_loop():
-
-    while (dt.datetime.now() - start).seconds < 30:
-        camera.annotate_text = dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        camera.wait_recording(0.2)
-    camera.stop_recording()
-
 def start_camera():
-    camera = picamera.PiCamera(resolution=(1280, 720), framerate=24)
+    camera = picamera.PiCamera()
+    camera.resolution = (1920, 1080)
+    camera.framerate = 30
+    camera.video_stabilization = True
     camera.annotate_foreground = picamera.Color('black')
-    camera.annotate_text_size = 14
+    camera.annotate_text_size = 18
     #camera.annotate_background = picamera.Color('white')
     return camera
 
+
+def unpack_data(struct_data):
+    return Rx_data(*struct.unpack(payload_struct_format, struct_data))
+
+
+def get_filename(data):
+    return f'/home/pi/Videos/{(data.time + timedelta(hours=-5)).strftime("%y%m%d%H%M%S")}'
+
+
+def step_enable(enable):
+    with serial.Serial('/dev/ttyACM0',115200) as ser:
+        ser.write(f"{'en'*enable or 'dis'}".encode('utf-8'))
+
+
+def serial_send(to_send):
+    with serial.Serial('/dev/ttyACM0',115200) as ser:
+        ser.write(f"{to_send}\n".encode('utf-8'))
+
+def move_camera(current_gps, base_gps):
+    print(int(bearing(base_gps, current_gps)/360*3200))
 
 def main():
     start_radio()
     camera = start_camera()
     last_payload = bytearray()
     last_button1 = False
+    tmp_data = Rx_data()
+    current_filename = get_filename(tmp_data)
+    video_time_start = datetime.now()
+    base_gps_data = Rx_data()
     try:
         while True:
             if receive_payload != last_payload:
-                gps_data = Rx_data(*struct.unpack(payload_struct_format, receive_payload))
-                if gps_data.button1 and not last_button1:
-                    last_button1 = gps_data.button1
-                    camera.start_recording(f"{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.h264")
+                current_gps_data = unpack_data(receive_payload)
+                (datetime.now() - video_time_start)
+                if current_gps_data.button1 and not last_button1:
+                    base_gps_data.latitude, base_gps_data.longitude = float(current_gps_data.latitude), float(current_gps_data.longitude)
+                    last_button1 = current_gps_data.button1
+                    step_enable(True)
+                    current_filename = get_filename(current_gps_data)
+                    video_time_start = datetime.now()
+                    camera.start_recording(f"{current_filename}.h264")
                     print('recording')
-                elif not gps_data.button1 and last_button1:
-                    last_button1 = gps_data.button1
+                elif not current_gps_data.button1 and last_button1:
                     camera.stop_recording()
+                    last_button1 = current_gps_data.button1
                     print('stopped recording')
-                #time.sleep(.2)
-                #print(f'{gps_data.latitude} {gps_data.longitude} \n  {(gps_data.time + timedelta(hours=-5)).strftime("%x %X ")}')
-                camera.annotate_text = f'speed: {str(gps_data.speed).zfill(2)} mph     altitude: {(gps_data.altitude*0.0328084):.0f} ft       {(gps_data.time + timedelta(hours=-5)).strftime("%x %X ")}{30*" "}'
-                #print(f'{gps_data.latitude} {gps_data.longitude}') 
-                #print(f'{receive_payload} \n length: {len(receive_payload)}')
+                if camera.recording:
+                    move_camera(current_gps_data, base_gps_data)
+                    #camera.annotate_text = f'speed: {str(current_gps_data.speed).zfill(2)} mph\nalt: {(current_gps_data.altitude*0.0328084):.0f} ft\n{(current_gps_data.time + timedelta(hours=-5)).strftime("%x %X ")}\n video_time_start = {(datetime.now() - video_time_start).seconds}'
+                    camera.annotate_text = f'speed: {str(current_gps_data.speed).zfill(2)}\nbearing: {bearing(base_gps_data, current_gps_data)}'
                 last_payload = receive_payload
     except KeyboardInterrupt:
+        step_enable(False)
+        camera.close()
         print(f'\ngoodbye')
 
 
