@@ -23,17 +23,19 @@ uint32_t blue = strip.Color(0, 0, 55);
 byte raw_data[3];
 uint16_t rec_data = DISABLE;
 uint16_t last_data;
+bool enabled;
 
 void setup()
 { 
   Wire.begin(SLAVE_ADDRESS);
   Wire.onReceive(receiveData); 
-  Serial.begin(115200);
+  //Serial.begin(115200);
   stepper.setEnablePin(STEPENABLEPIN);
   stepper.setPinsInverted(false, false, true);
   stepper.disableOutputs ();
+  enabled = false;
   stepper.setMaxSpeed(100.0);
-  stepper.setAcceleration(1000.0);
+  stepper.setAcceleration(100.0);
   stepper.setCurrentPosition(0);
 
   strip.begin();
@@ -46,24 +48,30 @@ void setup()
 void loop()
 {
   if (last_data != rec_data) {
-    Serial.println(rec_data);
     if (rec_data == DISABLE) {
       stepper.disableOutputs();
       strip.setPixelColor(0, green);
-      stepper.setCurrentPosition(0);
+      enabled = false;
     }
     else if (rec_data == ENABLE) {
       stepper.enableOutputs();
       strip.setPixelColor(0, red);
+      enabled = true;
     }
-    else {
-    stepper.moveTo(rec_data);
+    else
+    { 
+        if (enabled) {
+          stepper.moveTo(rec_data);
+      }
+        else {
+          stepper.setCurrentPosition(rec_data);
+      }
     }
     last_data = rec_data;
   }
 
   
-  if (rec_data!=DISABLE){
+  if (enabled){
     if (stepper.isRunning()){
       strip.setPixelColor(0, blue);
     }
