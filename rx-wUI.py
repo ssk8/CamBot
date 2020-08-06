@@ -9,7 +9,29 @@ import smbus
 import picamera
 import digitalio
 import board
+from PIL import Image, ImageDraw, ImageFont
+import adafruit_rgb_display.st7789 as st7789
 
+cs_pin = digitalio.DigitalInOut(board.CE0)
+dc_pin = digitalio.DigitalInOut(board.D25)
+reset_pin = None
+
+spi = board.SPI()
+disp = st7789.ST7789(board.SPI(), rotation=90, width=240, height=240, x_offset=0, y_offset=80, cs=digitalio.DigitalInOut(board.CE0), dc=digitalio.DigitalInOut(board.D25), baudrate=64000000)
+
+height, width, rotation = disp.height, disp.width, 90
+image = Image.new("RGB", (disp.width, disp.height))
+
+draw = ImageDraw.Draw(image)
+
+buttonA = digitalio.DigitalInOut(board.D23)
+buttonB = digitalio.DigitalInOut(board.D24)
+buttonA.switch_to_input()
+buttonB.switch_to_input()
+
+backlight = digitalio.DigitalInOut(board.D22)
+backlight.switch_to_output()
+backlight.value = True
 
 radio = RF24(17, 1)
 irq_gpio_pin = 27
@@ -21,11 +43,6 @@ last_base_file = 'last_base'
 i2c_address = 0x08
 i2c_reg_mode = 0x00
 i2c_bus = smbus.SMBus(1)
-
-buttonA = digitalio.DigitalInOut(board.D23)
-buttonB = digitalio.DigitalInOut(board.D24)
-buttonA.switch_to_input()
-buttonB.switch_to_input()
 
 
 class GPS_data():

@@ -26,20 +26,12 @@ backlight = digitalio.DigitalInOut(board.D22)
 backlight.switch_to_output()
 backlight.value = True
 
-padding = -2
-top = padding
-bottom = height - padding
-
-x = 0
-font_size = 24
-font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
-
 
 def refresh_menu(text_lines, sel):
-    padding = -2
+    padding = 20
     top = padding
     x = 0
-    font_size = 24
+    font_size = 28
     font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
     draw.rectangle((0, 0, width, height), outline=0, fill=0)
     y = top
@@ -55,31 +47,21 @@ def refresh_menu(text_lines, sel):
     return sel
 
 
-def test_selection(selected, sel):
-    padding = 20
-    top = padding
-    x = 0
-    font_size = 48
-    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
-    draw.rectangle((0, 0, width, height), outline=0, fill=0)
-    y = top
-    draw.text((x, y), f"{selected}!", font=font, fill="#FF00FF")
-    disp.image(image, rotation)
-    if not buttonB.value:
-        sel[1] = False
-    return sel
+def test_selection1():
+    print("selected1")
 
 
 def main():
-    options = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
-    selection = [0, False]
+    menu_options = {"focus": "fuckus", "set base": test_selection1, "capture": "kapture", "shutdown": "shitdown"}
+    current_option = [0, False]
 
     try:
         while True:  
-            if not selection[1]:
-                selection = refresh_menu(options, selection)
-            else:
-                selection = test_selection(options[selection[0]], selection)
+            current_option = refresh_menu(menu_options.keys(), current_option)
+            if current_option[1]:
+                print("pin-pong")
+                menu_options[list(menu_options.keys())[current_option[0]]]()
+                current_option[1] = False
 
     except KeyboardInterrupt:
         backlight.value = False
