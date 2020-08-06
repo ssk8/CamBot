@@ -22,6 +22,7 @@ i2c_address = 0x08
 i2c_reg_mode = 0x00
 i2c_bus = smbus.SMBus(1)
 
+
 buttonA = digitalio.DigitalInOut(board.D23)
 buttonB = digitalio.DigitalInOut(board.D24)
 buttonA.switch_to_input()
@@ -58,6 +59,9 @@ def start_radio():
 #   radio.openWritingPipe(pipes[1])
     radio.openReadingPipe(1, pipes[0])
     radio.startListening()
+
+
+start_radio()
 
 
 def start_camera():
@@ -116,7 +120,7 @@ def annotate(cam, base, cur, filename):
 
 
 def main():
-    start_radio()
+    
     camera = start_camera()
     last_rx = bytearray()
     last_button1 = False
