@@ -7,6 +7,7 @@ import struct
 from orientation import distance, bearing
 import smbus
 import picamera
+from io import BytesIO
 import digitalio
 import board
 from PIL import Image, ImageDraw, ImageFont
@@ -173,6 +174,36 @@ def track():
     shutdown()
 
 
+def update_display_image(cam):
+    cam.resolution = (240, 240)
+    stream = BytesIO()
+    cam.capture(stream, format='jpeg')
+    disp.image(Image.open(stream))
+    stream.close()
+
+
+def update_display_zoom_image(cam):
+    res = (4056, 3040) #(2028, 1520) 
+    cam.resolution = res
+    stream = BytesIO()
+    cam.capture(stream, format='jpeg')
+    disp.image(Image.open(stream).crop((res[0]/2, res[1]/2, res[0]/2 + 240, res[1]/2 + 240)))
+    stream.close()
+
+
+def focus():
+    zoom = False
+    camera = picamera.PiCamera()
+    while buttonB.value:
+        if not buttonA.value:
+            zoom = not zoom
+        if not zoom:
+            update_display_image(camera)
+        else:
+            update_display_zoom_image(camera)
+    camera.close()
+
+
 def refresh_menu(text_lines, sel):
     padding = 20
     top = padding
@@ -198,7 +229,7 @@ def junk_func():
 
 
 def main():
-    menu_options = {"focus": junk_func, "set base": junk_func, "track": track, "shutdown": shutdown}
+    menu_options = {"focus": focus, "set base": junk_func, "track": track, "shutdown": shutdown}
     current_option = [0, False]
 
     try:
@@ -211,7 +242,6 @@ def main():
     except KeyboardInterrupt:
         shutdown()
         
-
-
+        
 if __name__ == "__main__":
     main()

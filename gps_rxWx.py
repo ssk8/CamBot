@@ -125,6 +125,7 @@ def main():
 
     while buttonA.value:
         if current_rx != last_rx:
+            print("good nuse")
             current_gps_data = GPS_data(*unpack_data(current_rx))
             if current_gps_data.button1 and not last_button1:
                 base_gps_data.latitude, base_gps_data.longitude = float(current_gps_data.latitude), float(current_gps_data.longitude)
