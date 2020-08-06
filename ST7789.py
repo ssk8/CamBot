@@ -4,7 +4,7 @@ import numpy as np
 
 
 class ST7789(object):
-    """class for ST7789  240*240 1.3inch OLED displays."""
+    """Adafruit Mini PiTFT 1.3" - 240x240 TFT Add-on for Raspberry Pi"""
 
     def __init__(self, spi=spidev.SpiDev(0, 0), dc=25, bl=22, A=23, B=24):
         self.width = 240
