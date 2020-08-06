@@ -11,6 +11,7 @@ import digitalio
 import board
 from PIL import Image, ImageDraw, ImageFont
 import adafruit_rgb_display.st7789 as st7789
+import sys
 
 cs_pin = digitalio.DigitalInOut(board.CE0)
 dc_pin = digitalio.DigitalInOut(board.D25)
@@ -77,6 +78,12 @@ def start_radio():
     radio.startListening()
 
 
+def shutdown():
+    backlight.value = False
+    print("\nadios, muchachos")
+    sys.exit()
+
+
 def start_camera():
     camera = picamera.PiCamera()
     camera.resolution = (1920, 1080)
@@ -132,35 +139,78 @@ def annotate(cam, base, cur, filename):
         subtitles.write(stuff)
 
 
-def main():
+def track():
     start_radio()
     camera = start_camera()
     last_rx = bytearray()
     last_button1 = False
     base_gps_data = GPS_data(get_last_base())
     current_filename = get_filename(base_gps_data)
+    print(f'tracking')
+    
+    while buttonA.value:
+        if current_rx != last_rx:
+            print("good news")
+            current_gps_data = GPS_data(*unpack_data(current_rx))
+            if current_gps_data.button1 and not last_button1:
+                base_gps_data.latitude, base_gps_data.longitude = float(current_gps_data.latitude), float(current_gps_data.longitude)
+                last_button1 = current_gps_data.button1
+                current_filename = get_filename(current_gps_data)
+                camera.start_recording(f"{current_filename}.h264")
+                print('recording')
+            elif not current_gps_data.button1 and last_button1:
+                camera.stop_recording()
+                last_button1 = current_gps_data.button1
+                print('stopped recording')
+            if camera.recording:
+                move_camera(current_gps_data, base_gps_data)
+                annotate(camera, current_gps_data, base_gps_data, current_filename)
+                last_rx = current_rx
+
+    step_enable(False)
+    camera.close()
+    print(f'\ngoodbye')
+    shutdown()
+
+
+def refresh_menu(text_lines, sel):
+    padding = 20
+    top = padding
+    x = 0
+    font_size = 28
+    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
+    draw.rectangle((0, 0, width, height), outline=0, fill=0)
+    y = top
+    for n, line in enumerate(text_lines):
+        select = sel[0] == n
+        draw.text((x, y), f"{select*'>' or '  '} {line}", font=font, fill="#FFFFFF")
+        y += font_size
+    disp.image(image, rotation)
+    if not buttonA.value:
+        sel[0] = sel[0] + 1 if sel[0] + 1 < len(text_lines) else 0
+    if not buttonB.value:
+        sel[1] = True
+    return sel
+
+
+def junk_func():
+    print("dead end")
+
+
+def main():
+    menu_options = {"focus": junk_func, "set base": junk_func, "track": track, "shutdown": shutdown}
+    current_option = [0, False]
+
     try:
         while True:
-            if current_rx != last_rx:
-                current_gps_data = GPS_data(*unpack_data(current_rx))
-                if current_gps_data.button1 and not last_button1:
-                    base_gps_data.latitude, base_gps_data.longitude = float(current_gps_data.latitude), float(current_gps_data.longitude)
-                    last_button1 = current_gps_data.button1
-                    current_filename = get_filename(current_gps_data)
-                    camera.start_recording(f"{current_filename}.h264")
-                    print('recording')
-                elif not current_gps_data.button1 and last_button1:
-                    camera.stop_recording()
-                    last_button1 = current_gps_data.button1
-                    print('stopped recording')
-                if camera.recording:
-                    move_camera(current_gps_data, base_gps_data)
-                    annotate(camera, current_gps_data, base_gps_data, current_filename)
-                    last_rx = current_rx
+            current_option = refresh_menu(menu_options.keys(), current_option)
+            if current_option[1]:
+                menu_options[list(menu_options.keys())[current_option[0]]]()
+                current_option[1] = False
+
     except KeyboardInterrupt:
-        step_enable(False)
-        camera.close()
-        print(f'\ngoodbye')
+        shutdown()
+        
 
 
 if __name__ == "__main__":

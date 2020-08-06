@@ -122,28 +122,28 @@ def main():
     last_button1 = False
     base_gps_data = GPS_data(get_last_base())
     current_filename = get_filename(base_gps_data)
-    try:
-        while True:
-            if current_rx != last_rx:
-                current_gps_data = GPS_data(*unpack_data(current_rx))
-                if current_gps_data.button1 and not last_button1:
-                    base_gps_data.latitude, base_gps_data.longitude = float(current_gps_data.latitude), float(current_gps_data.longitude)
-                    last_button1 = current_gps_data.button1
-                    current_filename = get_filename(current_gps_data)
-                    camera.start_recording(f"{current_filename}.h264")
-                    print('recording')
-                elif not current_gps_data.button1 and last_button1:
-                    camera.stop_recording()
-                    last_button1 = current_gps_data.button1
-                    print('stopped recording')
-                if camera.recording:
-                    move_camera(current_gps_data, base_gps_data)
-                    annotate(camera, current_gps_data, base_gps_data, current_filename)
-                    last_rx = current_rx
-    except KeyboardInterrupt:
-        step_enable(False)
-        camera.close()
-        print(f'\ngoodbye')
+
+    while buttonA.value:
+        if current_rx != last_rx:
+            current_gps_data = GPS_data(*unpack_data(current_rx))
+            if current_gps_data.button1 and not last_button1:
+                base_gps_data.latitude, base_gps_data.longitude = float(current_gps_data.latitude), float(current_gps_data.longitude)
+                last_button1 = current_gps_data.button1
+                current_filename = get_filename(current_gps_data)
+                camera.start_recording(f"{current_filename}.h264")
+                print('recording')
+            elif not current_gps_data.button1 and last_button1:
+                camera.stop_recording()
+                last_button1 = current_gps_data.button1
+                print('stopped recording')
+            if camera.recording:
+                move_camera(current_gps_data, base_gps_data)
+                annotate(camera, current_gps_data, base_gps_data, current_filename)
+                last_rx = current_rx
+    
+    step_enable(False)
+    camera.close()
+    print(f'\ngoodbye')
 
 
 if __name__ == "__main__":
