@@ -112,8 +112,11 @@ def main():
                 current_option[1] = False
 
     except KeyboardInterrupt:
-        quit()
+        print("\nk, ok")
 
+    finally:
+        print("we're done here")
+        quit_UI()
 
 if __name__ == "__main__":
     main()
