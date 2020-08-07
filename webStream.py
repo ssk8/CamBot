@@ -93,3 +93,4 @@ if __name__ == "__main__":
             server.serve_forever()
         finally:
             camera.stop_recording()
+            print('finished up here, boss')

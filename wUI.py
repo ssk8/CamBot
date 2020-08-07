@@ -15,8 +15,22 @@ image = Image.new("RGB", (disp.width, disp.height))
 draw = ImageDraw.Draw(image)
 
 
+def get_ip():
+    return subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True).decode("utf-8")
+
+
 def shutdown():
     print("\nyer dead")
+    padding = 20
+    top = padding
+    x = 0
+    font_size = 28
+    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
+    draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
+    y = top
+    draw.text((0, 160), f"{get_ip()}", font=font, fill="#FFFFFF")
+    draw.text((0, 200), f"shutting down", font=font, fill="#FFFFFF")
+    disp.image(image)
     os.system('sudo shutdown now -h')
 
 
@@ -28,6 +42,11 @@ def quit_UI():
 
 def time_lapse():
     print("\ntime lapse")
+
+
+def stream():
+    print('stream?')
+    os.system('python3 /home/pi/pi-based-camera-tracker/pyWebStream.py')
 
 
 def update_display_image(cam):
@@ -72,8 +91,7 @@ def refresh_menu(text_lines, sel):
         select = sel[0] == n
         draw.text((x, y), f"{select*'>' or '  '} {line}", font=font, fill="#FFFFFF")
         y += font_size
-    IP = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True).decode("utf-8")
-    draw.text((0, 200), f"{IP}", font=font, fill="#FFFFFF")
+    draw.text((0, 200), f"{get_ip()}", font=font, fill="#FFFFFF")
     disp.image(image)
     if disp.buttonA:
         sel[0] = sel[0] + 1 if sel[0] + 1 < len(text_lines) else 0
@@ -83,7 +101,7 @@ def refresh_menu(text_lines, sel):
 
 
 def main():
-    menu_options = {"focus": focus, "time lapse": time_lapse, "quit": quit_UI, "shutdown": shutdown}
+    menu_options = {"focus": focus, "time lapse": time_lapse, "stream": stream, "quit": quit_UI, "shutdown": shutdown}
     current_option = [0, False]
 
     try:
