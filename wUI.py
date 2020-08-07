@@ -6,17 +6,28 @@ from PIL import Image, ImageDraw, ImageFont
 import sys
 import ST7789
 import subprocess
-import pyWebStream
+import os
 
 disp = ST7789.ST7789()
+disp.Init()
+disp.clear()
 image = Image.new("RGB", (disp.width, disp.height))
 draw = ImageDraw.Draw(image)
 
 
 def shutdown():
+    print("\nyer dead")
+    os.system('sudo shutdown now -h')
+
+
+def quit_UI():
     disp.backlight(False)
     print("\nadios, muchachos")
     sys.exit()
+
+
+def time_lapse():
+    print("\ntime lapse")
 
 
 def update_display_image(cam):
@@ -61,6 +72,8 @@ def refresh_menu(text_lines, sel):
         select = sel[0] == n
         draw.text((x, y), f"{select*'>' or '  '} {line}", font=font, fill="#FFFFFF")
         y += font_size
+    IP = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True).decode("utf-8")
+    draw.text((0, 200), f"{IP}", font=font, fill="#FFFFFF")
     disp.image(image)
     if disp.buttonA:
         sel[0] = sel[0] + 1 if sel[0] + 1 < len(text_lines) else 0
@@ -69,38 +82,8 @@ def refresh_menu(text_lines, sel):
     return sel
 
 
-def junk_func():
-    print("dead end")
-
-
-def web_stream():
-    IP = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True).decode("utf-8")
-    font_size = 24
-    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
-    draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
-    draw.text((0, 40), f"{IP}", font=font, fill="#FFFFFF")
-    draw.text((0, 80), "http://192.168.1.118:8000/stream.mjpg", font=font, fill="#FFFFFF")
-    disp.image(image)
-    
-    with picamera.PiCamera(resolution='1280x960', framerate=12) as camera:
-        output = pyWebStream.StreamingOutput()
-        print(f'{output}   {type(output)}')
-        camera.start_recording(output, format='mjpeg')
-        try:
-            address = ('', 8000)
-            server = pyWebStream.StreamingServer(address, pyWebStream.StreamingHandler)
-            server.serve_forever()
-        finally:
-            camera.stop_recording()
-
-   
-    while not disp.buttonA:
-        pass
-    camera.stop_recording()
-
-
 def main():
-    menu_options = {"focus": focus, "set base": junk_func, "track": junk_func, "stream": web_stream, "shutdown": shutdown}
+    menu_options = {"focus": focus, "time lapse": time_lapse, "quit": quit_UI, "shutdown": shutdown}
     current_option = [0, False]
 
     try:
@@ -111,7 +94,8 @@ def main():
                 current_option[1] = False
 
     except KeyboardInterrupt:
-        shutdown()
-        
+        quit()
+
+
 if __name__ == "__main__":
     main()
