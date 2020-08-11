@@ -7,6 +7,8 @@ import sys
 import ST7789
 import subprocess
 import os
+from datetime import datetime
+from time import sleep
 
 disp = ST7789.ST7789()
 disp.Init()
@@ -41,7 +43,25 @@ def quit_UI():
 
 
 def time_lapse():
-    print("\ntime lapse")
+    cam = picamera.PiCamera()
+    cam.resolution = (4056, 3040)
+    name = datetime.now().strftime("%y%m%d%H%M%S")
+    n = 1800
+    for pic_number in range(n):
+        try:
+            cam.capture(f'/home/pi/Pictures/{name}/{pic_number}.jpg', format='jpeg')
+        except FileNotFoundError:
+            os.mkdir("/home/pi/Pictures/{name}")
+            cam.capture(f'/home/pi/Pictures/{name}/{pic_number}.jpg', format='jpeg')
+        font_size = 28
+        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
+        draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
+        draw.text((0, 40), f"took picture", font=font, fill="#FFFFFF")
+        draw.text((0, 80), f"{pic_number} of {n}", font=font, fill="#FFFFFF")
+        disp.image(image)
+        sleep(1)
+
+    cam.close()
 
 
 def stream():
@@ -58,7 +78,7 @@ def update_display_image(cam):
 
 
 def update_display_zoom_image(cam):
-    res = (2028, 1520) # (4056, 3040) #(2028, 1520) 
+    res = (2028, 1520)  # (4056, 3040) #(2028, 1520) 
     cam.resolution = res
     stream = BytesIO()
     cam.capture(stream, format='jpeg')
@@ -100,8 +120,27 @@ def refresh_menu(text_lines, sel):
     return sel
 
 
+def take_picture():
+    cam = picamera.PiCamera()
+    cam.resolution = (4056, 3040)
+    name = datetime.now().strftime("%y%m%d%H%M%S")
+    try:
+        cam.capture(f'/home/pi/Pictures/{name}.jpg', format='jpeg')
+    except FileNotFoundError:
+        os.mkdir("/home/pi/Pictures")
+        take_picture(cam)
+    cam.close()
+    font_size = 28
+    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
+    draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
+    draw.text((0, 40), f"took picture", font=font, fill="#FFFFFF")
+    draw.text((0, 80), f"{name}", font=font, fill="#FFFFFF")
+    disp.image(image)
+    sleep(1)
+
+
 def main():
-    menu_options = {"focus": focus, "time lapse": time_lapse, "stream": stream, "quit": quit_UI, "shutdown": shutdown}
+    menu_options = {"focus": focus, "take picture": take_picture,  "time lapse": time_lapse, "stream": stream, "quit": quit_UI, "shutdown": shutdown}
     current_option = [0, False]
 
     try:
