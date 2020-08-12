@@ -7,6 +7,7 @@ import struct
 from orientation import distance, bearing
 import smbus
 import picamera
+from time import sleep
 
 
 radio = RF24(17, 1)
@@ -98,10 +99,18 @@ def step_enable(enable):
     send_step(enable*ENABLE or DISABLE)
 
 
+def get_step_possition(current_gps, base_gps):
+    pos = int(bearing(base_gps, current_gps)/360*3200)
+    return pos
+
+
 def move_camera(current_gps, base_gps):
     print(f"bearing: {int(bearing(base_gps, current_gps)/360*3200)}  distance: {distance(base_gps, current_gps)}")
     if distance(base_gps, current_gps) > 25:
         print('moving')
+        send_step(get_step_possition(current_gps, base_gps))
+    else:
+        print("too close")
 
 
 def write_base_pos(pos):
@@ -116,9 +125,11 @@ def get_last_base():
 
 
 def annotate(cam, base, cur, filename):
+    global last_time
     #cam.annotate_text = f'speed: {str(cur.speed).zfill(2)} mph\nalt: {(cur.altitude*0.0328084):.0f} ft\n{(cur.time + timedelta(hours=-5)).strftime("%x %X ")}\n video_time_start = {(datetime.now() - video_time_start).seconds}'
     cam.annotate_text = f'speed: {str(cur.speed).zfill(2)}\nbearing: {bearing(base, cur)}\ndistance: {distance(base, cur)}'
     current_time = f'{(cur.time + timedelta(hours=-5)).strftime("%y%m%d%H%M%S")}'
+    last_time = current_time
     stuff = f'{current_time} {str(cur.speed).zfill(2)}'
     with open(f'{filename}.srt', 'a') as subtitles:
         subtitles.write(stuff)
@@ -141,14 +152,16 @@ def main():
                     pos_lock = False
                 else:
                     print("lock possition")
-                    send_step(bearing(base_gps_data, current_gps_data))
+                    send_step(get_step_possition(base_gps_data, current_gps_data))
                     step_enable(True)
                     pos_lock = True
+                sleep(1)
             if buttonB():
                 base_gps_data = current_gps_data
                 write_base_pos(current_gps_data)
                 print("new base written")
-            if current_gps_data.button1 and not last_button1:
+                sleep(1)
+            if pos_lock and current_gps_data.button1 and not last_button1:
                 last_button1 = current_gps_data.button1
                 current_filename = get_filename(current_gps_data)
                 camera.start_recording(f"{current_filename}.h264")
@@ -161,7 +174,7 @@ def main():
                 move_camera(current_gps_data, base_gps_data)
                 annotate(camera, current_gps_data, base_gps_data, current_filename)
                 last_rx = current_rx
-    
+
     step_enable(False)
     camera.close()
     print(f'\ngoodbye')
