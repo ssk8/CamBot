@@ -23,13 +23,9 @@ def get_ip():
 
 def shutdown():
     print("\nyer dead")
-    padding = 20
-    top = padding
-    x = 0
     font_size = 28
     font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
     draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
-    y = top
     draw.text((0, 160), f"{get_ip()}", font=font, fill="#FFFFFF")
     draw.text((0, 200), f"shutting down", font=font, fill="#FFFFFF")
     disp.image(image)
@@ -66,8 +62,14 @@ def time_lapse():
 
 
 def track():
-    print('stream?')
-    os.system('python3 /home/pi/pi-based-camera-tracker/gps_rx.py')
+    print('track')
+    font_size = 28
+    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
+    draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
+    draw.text((0, 160), f"{get_ip()}", font=font, fill="#FFFFFF")
+    draw.text((0, 200), f"track", font=font, fill="#FFFFFF")
+    disp.image(image)
+    os.system('sudo python3 /home/pi/pi-based-camera-tracker/gps_rx.py')
 
 
 def update_display_image(cam):
