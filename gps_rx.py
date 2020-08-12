@@ -99,16 +99,16 @@ def step_enable(enable):
     send_step(enable*ENABLE or DISABLE)
 
 
-def get_step_possition(current_gps, base_gps):
+def get_step_possition(base_gps, current_gps):
     pos = int(bearing(base_gps, current_gps)/360*3200)
     return pos
 
 
-def move_camera(current_gps, base_gps):
+def move_camera(base_gps, current_gps):
     print(f"bearing: {int(bearing(base_gps, current_gps)/360*3200)}  distance: {distance(base_gps, current_gps)}")
     if distance(base_gps, current_gps) > 25:
         print('moving')
-        send_step(get_step_possition(current_gps, base_gps))
+        send_step(get_step_possition(base_gps, current_gps))
     else:
         print("too close")
 
@@ -139,12 +139,14 @@ def main():
     camera = start_camera()
     last_rx = bytearray()
     last_button1 = False
-    base_gps_data = GPS_data(get_last_base())
+    base_gps_data = None
     pos_lock = False
 
     while not (buttonA() and buttonB()):
         if current_rx != last_rx:
             current_gps_data = GPS_data(*unpack_data(current_rx))
+            if not base_gps_data:
+                base_gps_data = current_gps_data
             if buttonA():
                 if pos_lock:
                     print("possition lost")
@@ -158,8 +160,7 @@ def main():
                 sleep(1)
             if buttonB():
                 base_gps_data = current_gps_data
-                write_base_pos(current_gps_data)
-                print("new base written")
+                print("based")
                 sleep(1)
             if pos_lock and current_gps_data.button1 and not last_button1:
                 last_button1 = current_gps_data.button1
@@ -171,8 +172,8 @@ def main():
                 last_button1 = current_gps_data.button1
                 print('stopped recording')
             if camera.recording:
-                move_camera(current_gps_data, base_gps_data)
-                annotate(camera, current_gps_data, base_gps_data, current_filename)
+                move_camera(base_gps_data, current_gps_data)
+                annotate(camera, base_gps_data, current_gps_data, current_filename)
                 last_rx = current_rx
 
     step_enable(False)
