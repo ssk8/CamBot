@@ -34,6 +34,7 @@ def shutdown():
     draw.text((0, 200), f"shutting down", font=font, fill="#FFFFFF")
     disp.image(image)
     os.system('sudo shutdown now -h')
+    quit_UI()
 
 
 def quit_UI():
@@ -64,9 +65,9 @@ def time_lapse():
     cam.close()
 
 
-def stream():
+def track():
     print('stream?')
-    os.system('python3 /home/pi/pi-based-camera-tracker/pyWebStream.py')
+    os.system('python3 /home/pi/pi-based-camera-tracker/gps_rx.py')
 
 
 def update_display_image(cam):
@@ -140,7 +141,7 @@ def take_picture():
 
 
 def main():
-    menu_options = {"focus": focus, "take picture": take_picture,  "time lapse": time_lapse, "stream": stream, "quit": quit_UI, "shutdown": shutdown}
+    menu_options = {"focus": focus, "take picture": take_picture,  "time lapse": time_lapse, "track": track, "quit": quit_UI, "shutdown": shutdown}
     current_option = [0, False]
 
     try:

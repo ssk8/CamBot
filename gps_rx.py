@@ -8,6 +8,7 @@ from orientation import distance, bearing
 import smbus
 import picamera
 from time import sleep
+from os import system
 
 
 radio = RF24(17, 1)
@@ -179,6 +180,7 @@ def main():
     step_enable(False)
     camera.close()
     print(f'\ngoodbye')
+    system('sudo shutdown now -h')
 
 
 if __name__ == "__main__":
