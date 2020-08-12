@@ -20,15 +20,18 @@ i2c_address = 0x08
 i2c_reg_mode = 0x00
 i2c_bus = smbus.SMBus(1)
 
+A, B = 23, 24
+GPIO.setmode(GPIO.BCM)
+for pins in (A, B):
+    GPIO.setup(pins, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-@property
-def buttonA(self):
-    return GPIO.input(23) == GPIO.LOW
+
+def buttonA():
+    return GPIO.input(A) == GPIO.LOW
 
 
-@property
-def buttonB(self):
-    return GPIO.input(24) == GPIO.LOW
+def buttonB():
+    return GPIO.input(B) == GPIO.LOW
 
 
 class GPS_data():
@@ -126,14 +129,26 @@ def main():
     last_rx = bytearray()
     last_button1 = False
     base_gps_data = GPS_data(get_last_base())
-    current_filename = get_filename(base_gps_data)
+    pos_lock = False
 
-    while not buttonA:
+    while not (buttonA() and buttonB()):
         if current_rx != last_rx:
-            print("good nuse")
             current_gps_data = GPS_data(*unpack_data(current_rx))
+            if buttonA():
+                if pos_lock:
+                    print("possition lost")
+                    step_enable(False)
+                    pos_lock = False
+                else:
+                    print("lock possition")
+                    send_step(bearing(base_gps_data, current_gps_data))
+                    step_enable(True)
+                    pos_lock = True
+            if buttonB():
+                base_gps_data = current_gps_data
+                write_base_pos(current_gps_data)
+                print("new base written")
             if current_gps_data.button1 and not last_button1:
-                base_gps_data.latitude, base_gps_data.longitude = float(current_gps_data.latitude), float(current_gps_data.longitude)
                 last_button1 = current_gps_data.button1
                 current_filename = get_filename(current_gps_data)
                 camera.start_recording(f"{current_filename}.h264")
