@@ -17,7 +17,6 @@ cd RF24
 make; sudo make install
 
 sudo apt install libboost-python-dev python3-pip
-pip3 install setuptools
 
 cd pyRF24 
 python3 setup.py build
