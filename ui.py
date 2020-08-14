@@ -34,6 +34,7 @@ def shutdown():
 
 
 def quit_UI():
+    disp.clear()
     disp.backlight(False)
     print("\nadios, muchachos")
     sys.exit()
@@ -43,62 +44,57 @@ def time_lapse():
     cam = picamera.PiCamera()
     cam.resolution = (4056, 3040)
     name = datetime.now().strftime("%y%m%d%H%M%S")
-    n = 1800
+    os.mkdir(f"/home/pi/Pictures/{name}")
+    sleep(1)
+    n = 1800  # number of pictures in time-lapse
+    h = 0
     for pic_number in range(n):
-        try:
-            cam.capture(f'/home/pi/Pictures/{name}/{pic_number}.jpg', format='jpeg')
-        except FileNotFoundError:
-            os.mkdir("/home/pi/Pictures/{name}")
-            cam.capture(f'/home/pi/Pictures/{name}/{pic_number}.jpg', format='jpeg')
+        if h > 200: h = 0
+        cam.capture(f'/home/pi/Pictures/{name}/{pic_number}.jpg', format='jpeg')
         font_size = 28
         font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
-        draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
-        draw.text((0, 40), f"took picture", font=font, fill="#FFFFFF")
-        draw.text((0, 80), f"{pic_number} of {n}", font=font, fill="#FFFFFF")
+        draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=(150, 150, 150))
+        draw.text((0, h), f"took picture", font=font, fill="#000000")
+        draw.text((0, h+20), f"{str(pic_number).zfill(len(str(n)))} of {n}", font=font, fill="#000000")
         disp.image(image)
+        h += 20
+        if disp.buttonA:
+            break
         sleep(1)
-
     cam.close()
 
 
 def track():
     print('track')
-    font_size = 28
-    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
-    draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
-    draw.text((0, 160), f"{get_ip()}", font=font, fill="#FFFFFF")
-    draw.text((0, 200), f"track", font=font, fill="#FFFFFF")
-    disp.image(image)
+    disp.clear()
+    disp.backlight(False)
     os.system('sudo python3 /home/pi/pi-based-camera-tracker/gps_rx.py')
 
 
-def update_display_image(cam):
-    cam.resolution = (240, 240)
+def update_display_image(cam, zoom):
+    normal_res = (240, 240)
+    zoom_res = (2028, 1520)  # (4056, 3040) (2028, 1520)
+    if zoom:
+        cam.resolution = zoom_res
+    else:
+        cam.resolution = normal_res
     stream = BytesIO()
     cam.capture(stream, format='jpeg')
-    disp.image(Image.open(stream))
-    stream.close()
-
-
-def update_display_zoom_image(cam):
-    res = (2028, 1520)  # (4056, 3040) #(2028, 1520) 
-    cam.resolution = res
-    stream = BytesIO()
-    cam.capture(stream, format='jpeg')
-    disp.image(Image.open(stream).crop((res[0]/2, res[1]/2, res[0]/2 + 240, res[1]/2 + 240)))
+    if zoom:
+        disp.image(Image.open(stream).crop((zoom_res[0]/2, zoom_res[1]/2, zoom_res[0]/2 + 240, zoom_res[1]/2 + 240)))
+    else:
+        disp.image(Image.open(stream))
     stream.close()
 
 
 def focus():
     zoom = False
     camera = picamera.PiCamera()
+    disp.clear()
     while not disp.buttonA:
         if disp.buttonB:
             zoom = not zoom
-        if not zoom:
-            update_display_image(camera)
-        else:
-            update_display_zoom_image(camera)
+        update_display_image(camera, zoom)
     camera.close()
 
 
@@ -108,13 +104,13 @@ def refresh_menu(text_lines, sel):
     x = 0
     font_size = 28
     font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
-    draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
+    draw.rectangle((0, 0, disp.width, disp.height), outline=8, fill=(200,200,200))
     y = top
     for n, line in enumerate(text_lines):
         select = sel[0] == n
-        draw.text((x, y), f"{select*'>' or '  '} {line}", font=font, fill="#FFFFFF")
+        draw.text((x, y), f"{select*'>' or '  '} {line}", font=font, fill="#000000")
         y += font_size
-    draw.text((0, 200), f"{get_ip()}", font=font, fill="#FFFFFF")
+    draw.text((0, 200), f"{get_ip()}", font=font, fill="#000000")
     disp.image(image)
     if disp.buttonA:
         sel[0] = sel[0] + 1 if sel[0] + 1 < len(text_lines) else 0
@@ -127,38 +123,30 @@ def take_picture():
     cam = picamera.PiCamera()
     cam.resolution = (4056, 3040)
     name = datetime.now().strftime("%y%m%d%H%M%S")
+    font_size = 18
+    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
+    draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
+    draw.text((0, 40), f"taikng picture", font=font, fill="#FFFFFF")
+    draw.text((0, 80), f"{name}", font=font, fill="#FFFFFF")
+    disp.image(image)
     try:
         cam.capture(f'/home/pi/Pictures/{name}.jpg', format='jpeg')
     except FileNotFoundError:
         os.mkdir("/home/pi/Pictures")
         take_picture(cam)
     cam.close()
-    font_size = 28
-    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
-    draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
-    draw.text((0, 40), f"took picture", font=font, fill="#FFFFFF")
-    draw.text((0, 80), f"{name}", font=font, fill="#FFFFFF")
-    disp.image(image)
-    sleep(1)
 
 
 def main():
     menu_options = {"focus": focus, "take picture": take_picture,  "time lapse": time_lapse, "track": track, "quit": quit_UI, "shutdown": shutdown}
     current_option = [0, False]
 
-    try:
-        while True:
-            current_option = refresh_menu(menu_options.keys(), current_option)
-            if current_option[1]:
-                menu_options[list(menu_options.keys())[current_option[0]]]()
-                current_option[1] = False
+    while True:
+        current_option = refresh_menu(menu_options.keys(), current_option)
+        if current_option[1]:
+            menu_options[list(menu_options.keys())[current_option[0]]]()
+            current_option[1] = False
 
-    except KeyboardInterrupt:
-        print("\nk, ok")
-
-    finally:
-        print("we're done here")
-        quit_UI()
 
 if __name__ == "__main__":
     main()
