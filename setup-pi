@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo apt install python3-pip vim git
+
 wget http://www.airspayce.com/mikem/bcm2835/bcm2835-1.67.tar.gz
 tar zxvf bcm2835-1.67.tar.gz
 cd bcm2835-1.67
@@ -16,8 +18,11 @@ cd RF24
 ./configure --driver=SPIDEV
 make; sudo make install
 
-sudo apt install libboost-python-dev python3-pip
+sudo apt install libboost-python-dev
 
 cd pyRF24 
 python3 setup.py build
 sudo python3 setup.py install
+
+sudo apt install python3-picamera python3-pil python3-rpi.gpio python3-spidev
+#fonts?
