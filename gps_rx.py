@@ -7,7 +7,7 @@ import struct
 from orientation import distance, bearing
 import smbus
 import picamera
-from time import sleep
+from time import sleep, time
 from os import system
 
 
@@ -126,14 +126,14 @@ def get_last_base():
 
 
 def annotate(cam, base, cur, filename):
-    global last_time
-    #cam.annotate_text = f'speed: {str(cur.speed).zfill(2)} mph\nalt: {(cur.altitude*0.0328084):.0f} ft\n{(cur.time + timedelta(hours=-5)).strftime("%x %X ")}\n video_time_start = {(datetime.now() - video_time_start).seconds}'
-    cam.annotate_text = f'speed: {str(cur.speed).zfill(2)}\nbearing: {bearing(base, cur)}\ndistance: {distance(base, cur)}'
-    current_time = f'{(cur.time + timedelta(hours=-5)).strftime("%y%m%d%H%M%S")}'
-    last_time = current_time
-    stuff = f'{current_time} {str(cur.speed).zfill(2)}'
+    global v_data
+    #cam.annotate_text = f'speed: {str(cur.speed).zfill(2)} mph\nalt: {(cur.altitude*0.0328084):.0f} ft\n{(cur.time + timedelta(hours=-5)).strftime("%x %X ")}\n v_data_start = {(datetime.now() - v_data_start).seconds}'
+    cam.annotate_text = f'speed: {str(cur.speed).zfill(2)} mph\nalt: {(cur.altitude*0.0328084):.0f} ft'
+    current_time = f'{(cur.time + timedelta(hours=-5)).strftime("%y/%m/%d %H:%M:%S")}'
+    stuff = f'{v_data[1]}\nSTART{time() - v_data[0]}\n{current_time} speed: {str(cur.speed).zfill(2)} mph  alt: {(cur.altitude*0.0328084):.0f} ft\n\n'
     with open(f'{filename}.srt', 'a') as subtitles:
         subtitles.write(stuff)
+    v_data[1] += 1
 
 
 def main():
@@ -164,6 +164,8 @@ def main():
                 print("based")
                 sleep(1)
             if pos_lock and current_gps_data.button1 and not last_button1:
+                global v_data
+                v_data = [time(), 1]
                 last_button1 = current_gps_data.button1
                 current_filename = get_filename(current_gps_data)
                 camera.start_recording(f"{current_filename}.h264")

@@ -22,7 +22,6 @@ def get_ip():
 
 
 def shutdown():
-    print("\nyer dead")
     font_size = 28
     font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
     draw.rectangle((0, 0, disp.width, disp.height), outline=0, fill=0)
@@ -36,7 +35,6 @@ def shutdown():
 def quit_UI():
     disp.clear()
     disp.backlight(False)
-    print("\nadios, muchachos")
     sys.exit()
 
 
@@ -46,8 +44,8 @@ def time_lapse():
     name = datetime.now().strftime("%y%m%d%H%M%S")
     os.mkdir(f"/home/pi/Pictures/{name}")
     sleep(1)
-    n = 1800  # number of pictures in time-lapse
-    h = 0
+    n = 1800  # <------------- number of pictures in time-lapse
+    h = 0  # offset to avoid screen burn in
     for pic_number in range(n):
         if h > 200: h = 0
         cam.capture(f'/home/pi/Pictures/{name}/{pic_number}.jpg', format='jpeg')
@@ -65,14 +63,13 @@ def time_lapse():
 
 
 def track():
-    print('track')
     disp.clear()
     disp.backlight(False)
-    os.system('sudo python3 /home/pi/pi-based-camera-tracker/gps_rx.py')
+    os.system('sudo python3 /home/pi/pi-based-camera-tracker/track.py')
 
 
 def update_display_image(cam, zoom):
-    normal_res = (240, 240)
+    normal_res = (disp.width, disp.height)
     zoom_res = (2028, 1520)  # (4056, 3040) (2028, 1520)
     if zoom:
         cam.resolution = zoom_res
@@ -81,7 +78,7 @@ def update_display_image(cam, zoom):
     stream = BytesIO()
     cam.capture(stream, format='jpeg')
     if zoom:
-        disp.image(Image.open(stream).crop((zoom_res[0]/2, zoom_res[1]/2, zoom_res[0]/2 + 240, zoom_res[1]/2 + 240)))
+        disp.image(Image.open(stream).crop((zoom_res[0]/2, zoom_res[1]/2, zoom_res[0]/2 + disp.height, zoom_res[1]/2 + disp.height)))
     else:
         disp.image(Image.open(stream))
     stream.close()
@@ -129,11 +126,7 @@ def take_picture():
     draw.text((0, 40), f"taikng picture", font=font, fill="#FFFFFF")
     draw.text((0, 80), f"{name}", font=font, fill="#FFFFFF")
     disp.image(image)
-    try:
-        cam.capture(f'/home/pi/Pictures/{name}.jpg', format='jpeg')
-    except FileNotFoundError:
-        os.mkdir("/home/pi/Pictures")
-        take_picture(cam)
+    cam.capture(f'/home/pi/Pictures/{name}.jpg', format='jpeg')
     cam.close()
 
 
