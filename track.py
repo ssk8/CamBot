@@ -9,7 +9,7 @@ import smbus
 import picamera
 from time import sleep, time
 from os import system
-
+from subtitle import finish_subs
 
 radio = RF24(17, 1)
 irq_gpio_pin = 27
@@ -128,11 +128,11 @@ def get_last_base():
 def annotate(cam, base, cur, filename):
     global v_data
     #cam.annotate_text = f'speed: {str(cur.speed).zfill(2)} mph\nalt: {(cur.altitude*0.0328084):.0f} ft\n{(cur.time + timedelta(hours=-5)).strftime("%x %X ")}\n v_data_start = {(datetime.now() - v_data_start).seconds}'
-    cam.annotate_text = f'speed: {str(cur.speed).zfill(2)} mph\nalt: {(cur.altitude*0.0328084):.0f} ft'
     current_time = f'{(cur.time + timedelta(hours=-5)).strftime("%y/%m/%d %H:%M:%S")}'
-    stuff = f'{v_data[1]}\nSTART{time() - v_data[0]}\n{current_time} speed: {str(cur.speed).zfill(2)} mph  alt: {(cur.altitude*0.0328084):.0f} ft\n\n'
+    cam.annotate_text = f'{current_time}\n{speed: {str(cur.speed).zfill(2)} mph\nalt: {(cur.altitude*0.0328084):.0f} ft'
+    current_subtitle = f'{v_data[1]}\nSTART{time() - v_data[0]}\n{current_time} speed: {str(cur.speed).zfill(2)} mph  alt: {(cur.altitude*0.0328084):.0f} ft\n\n'
     with open(f'{filename}.srt', 'a') as subtitles:
-        subtitles.write(stuff)
+        subtitles.write(current_subtitle)
     v_data[1] += 1
 
 
@@ -173,6 +173,7 @@ def main():
             elif not current_gps_data.button1 and last_button1:
                 camera.stop_recording()
                 last_button1 = current_gps_data.button1
+                finish_subs(current_filename)
                 print('stopped recording')
             if camera.recording:
                 move_camera(base_gps_data, current_gps_data)
