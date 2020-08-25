@@ -74,7 +74,7 @@ start_radio()
 def start_camera():
     camera = picamera.PiCamera()
     camera.resolution = (1920, 1080)
-    camera.framerate = 30
+    camera.framerate = 25
     camera.video_stabilization = True
     camera.annotate_foreground = picamera.Color('black')
     camera.annotate_text_size = 18
@@ -166,17 +166,19 @@ def main():
                 global v_data
                 v_data = [time(), 1]
                 last_button1 = current_gps_data.button1
-                current_filename = get_filename(current_gps_data)
-                camera.start_recording(f"{current_filename}.h264")
+                filename = get_filename(current_gps_data)
+                camera.start_recording(f"{filename}.h264")
                 print('recording')
             elif not current_gps_data.button1 and last_button1:
                 camera.stop_recording()
                 last_button1 = current_gps_data.button1
-                finish_subs(current_filename)
+                finish_subs(filename)
                 print('stopped recording')
+                system(f'ffmpeg -i {filename}.h264 -i {filename}.srt -vcodec copy -c:s mov_text {filename}.mp4')
+                print("wrote mp4")
             if camera.recording:
                 move_camera(base_gps_data, current_gps_data)
-                annotate(camera, base_gps_data, current_gps_data, current_filename)
+                annotate(camera, base_gps_data, current_gps_data, filename)
                 last_rx = current_rx
 
     step_enable(False)

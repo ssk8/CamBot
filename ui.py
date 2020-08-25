@@ -63,6 +63,7 @@ def time_lapse():
 
 
 def track():
+    disp.Init()
     disp.clear()
     disp.backlight(False)
     os.system('sudo python3 /home/pi/pi-based-camera-tracker/track.py')
