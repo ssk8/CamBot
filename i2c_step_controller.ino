@@ -2,13 +2,13 @@
 #include <Adafruit_DotStar.h>
 #include <Wire.h>
 
-
+#define nperRev 12800
 #define SLAVE_ADDRESS 0x08
 #define STEPENABLEPIN 1
 #define DIRPIN 3
 #define STEPPIN 4
 #define DATAPIN    7
-#define CLOCKPIN   8
+#define CLOCKPIN   8 
 #define DISABLE 65279
 #define ENABLE 65278
 
@@ -21,21 +21,22 @@ uint32_t blue = strip.Color(0, 0, 55);
 
 
 byte raw_data[3];
-uint16_t rec_data = DISABLE;
-uint16_t last_data;
+long rec_data = DISABLE;
+long last_data;
+long next_pos;
 bool enabled;
 
 void setup()
 { 
+  //Serial.begin(115200);
   Wire.begin(SLAVE_ADDRESS);
   Wire.onReceive(receiveData); 
-  //Serial.begin(115200);
   stepper.setEnablePin(STEPENABLEPIN);
   stepper.setPinsInverted(false, false, true);
   stepper.disableOutputs ();
   enabled = false;
-  stepper.setMaxSpeed(100.0);
-  stepper.setAcceleration(100.0);
+  stepper.setMaxSpeed(nperRev/4);
+  stepper.setAcceleration(nperRev/40);
   stepper.setCurrentPosition(0);
 
   strip.begin();
@@ -60,11 +61,14 @@ void loop()
     }
     else
     { 
+        next_pos = rec_data;
         if (enabled) {
-          stepper.moveTo(rec_data);
+          if (abs(stepper.currentPosition()-next_pos)>abs(stepper.currentPosition()-next_pos+nperRev)) next_pos-=nperRev;
+          else if (abs(stepper.currentPosition()-next_pos)>abs(stepper.currentPosition()-next_pos-nperRev)) next_pos+=nperRev;
+          stepper.moveTo(next_pos);
       }
         else {
-          stepper.setCurrentPosition(rec_data);
+          stepper.setCurrentPosition(next_pos);
       }
     }
     last_data = rec_data;
@@ -79,7 +83,11 @@ void loop()
       strip.setPixelColor(0, red);
    }
   }
-   
+
+//  Serial.print("Current: ");
+//  Serial.print(stepper.currentPosition());
+//  Serial.print("  Target: ");
+//  Serial.println(stepper.targetPosition());
   strip.show(); 
   stepper.run();
 }
