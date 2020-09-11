@@ -1,19 +1,23 @@
+
 #include <SPI.h>
 #include "nRF24L01.h"
 #include "RF24.h"
 #include <TinyGPS++.h>
 #include <EasyButton.h>
+#include <Adafruit_NeoPixel.h>
 
 
-#define LED_PIN 13
+#define LED_PIN 12
 #define BUTTON_1_PIN 10
 bool button1_state = false;
+unsigned long time_at_gps;
 
-
-RF24 radio(A4,A5);
+RF24 radio(A4, A5);
 TinyGPSPlus gps;
 
-EasyButton button1(BUTTON_1_PIN);
+EasyButton button1(BUTTON_1_PIN, 40, true, false);
+
+Adafruit_NeoPixel led(1, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 const uint64_t pipes[2] = { 0xF0F0F0F0E1LL, 0xF0F0F0F0D2LL };
 
@@ -35,7 +39,7 @@ void setup(void)
 {
 
 
-  Serial.begin(115200);
+  //Serial.begin(115200);
   Serial1.begin(9600);
   radio.begin();
   radio.setPALevel(RF24_PA_LOW); // for testing
@@ -49,7 +53,9 @@ void setup(void)
 
   //radio.printDetails();
 
-  pinMode(LED_PIN, OUTPUT);
+  led.begin();
+  led.show();
+  led.setBrightness(200);
 
   pinMode(BUTTON_1_PIN,INPUT_PULLUP);
   button1.onPressed(buttonPressed);
@@ -60,7 +66,7 @@ void setup(void)
 
 void loop(void)
 {
-   while (Serial1.available() > 0) gps.encode(Serial1.read());
+  while (Serial1.available() > 0) gps.encode(Serial1.read());
   if (gps.location.isUpdated())
   {
     gps_data.latitude = gps.location.lat();
@@ -71,27 +77,26 @@ void loop(void)
     gps_data.course = (short)gps.course.value();
     gps_data.altitude = gps.altitude.value();
     gps_data.button1 = button1_state;
-    
 //    Serial.print(gps.time.value());
 //    Serial.print("  ");
 //    Serial.println(gps_data.gps_time);
 //    Serial.println(sizeof(GPS_data));
-    radio.write( &gps_data, sizeof(GPS_data) ); 
+    radio.write( &gps_data, sizeof(GPS_data) );
+    time_at_gps = millis(); 
   }
   
+  if ((millis() - time_at_gps) > 1000) led.setPixelColor(0, led.Color(0, 0, 200));
+  else {
+    if (button1_state) led.setPixelColor(0, led.Color(200, 0, 0));
+    else led.setPixelColor(0, led.Color(0, 200, 0));
+  }
+  led.show();
 }
 
 
 void buttonPressed()
 {
   button1_state = !button1_state;
-  //Serial.print("rec=");
-  if (button1_state){
-    digitalWrite(LED_PIN, HIGH);
-  }
-  else{
-    digitalWrite(LED_PIN, LOW);
-    }
 }
 
 void sequenceEllapsed()
