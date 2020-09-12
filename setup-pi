@@ -24,5 +24,5 @@ cd pyRF24
 python3 setup.py build
 sudo python3 setup.py install
 
-sudo apt install python3-picamera python3-pil python3-rpi.gpio python3-spidev python3-smbus
+sudo apt install python3-picamera python3-pil python3-rpi.gpio python3-spidev python3-smbus pyserial pynmea2
 # copy fonts in dropbox /home/curt/Dropbox/tnkerProjects/piTFT to /usr/share/fonts/
