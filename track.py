@@ -7,20 +7,24 @@ import struct
 from orientation import distance, bearing
 import smbus
 import picamera
+import local_gps
 from time import sleep, time
 from os import system
 from subtitle import finish_subs
+
+n_per_rev = 3200*4
+
+local_gps_dev = '/dev/ttyS0'
+
+i2c_address = 0x08
+i2c_reg_mode = 0x00
+i2c_bus = smbus.SMBus(1)
 
 radio = RF24(17, 1)
 irq_gpio_pin = 27
 pipes = [0xF0F0F0F0E1, 0xF0F0F0F0D2]
 struct_format = 'ffIIhhi????'
 current_rx = bytearray()
-
-last_base_file = 'last_base'
-i2c_address = 0x08
-i2c_reg_mode = 0x00
-i2c_bus = smbus.SMBus(1)
 
 A, B = 23, 24
 GPIO.setmode(GPIO.BCM)
@@ -101,28 +105,17 @@ def step_enable(enable):
 
 
 def get_step_possition(base_gps, current_gps):
-    pos = int(bearing(base_gps, current_gps)/360*3200)
+    pos = int(bearing(base_gps, current_gps)/360*n_per_rev)
     return pos
 
 
 def move_camera(base_gps, current_gps):
-    print(f"bearing: {int(bearing(base_gps, current_gps)/360*3200)}  distance: {distance(base_gps, current_gps)}")
+    print(f"bearing: {int(bearing(base_gps, current_gps))}  distance: {distance(base_gps, current_gps)}")
     if distance(base_gps, current_gps) > 25:
         print('moving')
         send_step(get_step_possition(base_gps, current_gps))
     else:
         print("too close")
-
-
-def write_base_pos(pos):
-    with open(last_base_file, 'w') as last_base:
-        last_base.write(f'{pos}')
-
-
-def get_last_base():
-    with open(last_base_file, 'r') as last_base:
-        base = last_base.readline()
-    return base
 
 
 def annotate(cam, base, cur, filename):
@@ -159,9 +152,10 @@ def main():
                     pos_lock = True
                 sleep(1)
             if buttonB():
-                base_gps_data = current_gps_data
+                #base_gps_data = current_gps_data
+                b_lat, b_lon = local_gps.get_latlon(local_gps_dev)
+                base_gps_data = GPS_data(latitude=b_lat, longitude=b_lon)
                 print("based")
-                sleep(1)
             if pos_lock and current_gps_data.button1 and not last_button1:
                 global v_data
                 v_data = [time(), 1]
@@ -174,8 +168,9 @@ def main():
                 last_button1 = current_gps_data.button1
                 finish_subs(filename)
                 print('stopped recording')
-                system(f'ffmpeg -i {filename}.h264 -i {filename}.srt -vcodec copy -c:s mov_text {filename}.mp4')
-                print("wrote mp4")
+                #system(f'ffmpeg -i {filename}.h264 -i {filename}.srt -vcodec copy -c:s mov_text {filename}.mp4')
+                #print("wrote mp4")
+                #system(f'rm {filename}.h264')
             if camera.recording:
                 move_camera(base_gps_data, current_gps_data)
                 annotate(camera, base_gps_data, current_gps_data, filename)
