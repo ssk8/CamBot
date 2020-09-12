@@ -23,6 +23,6 @@ sudo apt install libboost-python-dev
 cd pyRF24 
 python3 setup.py build
 sudo python3 setup.py install
-
+sudo python3 -m pip install pyserial pynmea2
 sudo apt install python3-picamera python3-pil python3-rpi.gpio python3-spidev python3-smbus
-#fonts in dropbox /home/curt/Dropbox/tnkerProjects/piTFT
+# copy fonts in dropbox /home/curt/Dropbox/tnkerProjects/piTFT to /usr/share/fonts/
