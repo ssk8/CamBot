@@ -11,7 +11,7 @@ def get_gps_data(device):
                 newdata = [0, 0, 0, 0]
                 continue
             for line in newdata:
-                if line.startswith("$GPRMC"):
+                if line.startswith("$GPRMC") or line.startswith("$GNRMC"):
                     newmsg = pynmea2.parse(line)
                     return(newmsg)
 
@@ -29,4 +29,3 @@ def main(device):
 
 if __name__ == "__main__":
     main('/dev/ttyS0')
-

@@ -121,7 +121,7 @@ def move_camera(base_gps, current_gps):
 def annotate(cam, base, cur, filename):
     global v_data
     current_time = f'{(cur.time + timedelta(hours=-5)).strftime("%y/%m/%d %H:%M:%S")}'
-    cam.annotate_text = f'{current_time}\nspeed: {str(cur.speed).zfill(2)} mph\nalt: {(cur.altitude*0.0328084):.0f} ft'
+    #cam.annotate_text = f'{current_time}\nspeed: {str(cur.speed).zfill(2)} mph\nalt: {(cur.altitude*0.0328084):.0f} ft'
     current_subtitle = f'{v_data[1]}\nSTART{time() - v_data[0]}\n{current_time} speed: {str(cur.speed).zfill(2)} mph  alt: {(cur.altitude*0.0328084):.0f} ft\n\n'
     with open(f'{filename}.srt', 'a') as subtitles:
         subtitles.write(current_subtitle)
