@@ -7,7 +7,7 @@ import struct
 from orientation import distance, bearing
 import smbus
 import picamera
-import local_gps
+#import local_gps
 from time import sleep, time
 from os import system
 from subtitle import finish_subs
@@ -153,8 +153,8 @@ def main():
                 sleep(1)
             if buttonB():
                 base_gps_data = current_gps_data
-                b_lat, b_lon = local_gps.get_latlon(local_gps_dev)
-                base_gps_data = GPS_data(latitude=b_lat, longitude=b_lon)
+                #b_lat, b_lon = local_gps.get_latlon(local_gps_dev)
+                #base_gps_data = GPS_data(latitude=b_lat, longitude=b_lon)
                 print("based")
             if pos_lock and current_gps_data.button1 and not last_button1:
                 global v_data
