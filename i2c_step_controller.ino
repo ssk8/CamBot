@@ -2,7 +2,7 @@
 #include <Adafruit_DotStar.h>
 #include <Wire.h>
 
-#define nperRev 12800
+#define nperRev 38400
 #define SLAVE_ADDRESS 0x08
 #define STEPENABLEPIN 1
 #define DIRPIN 3
@@ -35,8 +35,8 @@ void setup()
   stepper.setPinsInverted(false, false, true);
   stepper.disableOutputs ();
   enabled = false;
-  stepper.setMaxSpeed(nperRev/4);
-  stepper.setAcceleration(nperRev/40);
+  stepper.setMaxSpeed(nperRev/2);
+  stepper.setAcceleration(nperRev/20);
   stepper.setCurrentPosition(0);
 
   strip.begin();

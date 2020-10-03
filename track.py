@@ -12,7 +12,7 @@ from time import sleep, time
 from os import system
 from subtitle import finish_subs
 
-n_per_rev = 3200*4
+n_per_rev = 3200*4*3
 
 local_gps_dev = '/dev/ttyS0'
 
@@ -152,7 +152,7 @@ def main():
                     pos_lock = True
                 sleep(1)
             if buttonB():
-#                base_gps_data = current_gps_data
+                base_gps_data = current_gps_data
                 b_lat, b_lon = local_gps.get_latlon(local_gps_dev)
                 base_gps_data = GPS_data(latitude=b_lat, longitude=b_lon)
                 print("based")
