@@ -1,5 +1,6 @@
 # Auto camera tracker
 in action: https://youtu.be/omu7OnxMOV8
+
 This is an expansion on my PoC auto-tracking camera system. The first one worked but had some major shortcomings which I'm trying to address.
 
 Steps in setup-pi are needed to get the RF24 working on the Raspberry Pi. I'm not sure if it will run as a shell script
