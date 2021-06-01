@@ -5,13 +5,16 @@ import smbus
 bus = smbus.SMBus(1)
 
 DEVICE_ADDRESS = 0x08
+DISABLE = 2147483647
+ENABLE = 2147483646
 
-bus.write_block_data(DEVICE_ADDRESS, 0x00, list(divmod(65278, 255)))
+n=0
+bus.write_block_data(DEVICE_ADDRESS, 0x00, list(n.to_bytes(4, byteorder='big')))
+bus.write_block_data(DEVICE_ADDRESS, 0x00, list(ENABLE.to_bytes(4, byteorder='big')))
 
 try:
     while True:
         n = int(input("what position? "))
-        bus.write_block_data(DEVICE_ADDRESS, 0x00, list(divmod(n, 255)))
-
+        bus.write_block_data(DEVICE_ADDRESS, 0x00, list(n.to_bytes(4, byteorder='big')))
 except KeyboardInterrupt:
-    bus.write_block_data(DEVICE_ADDRESS, 0x00, list(divmod(65279, 255)))
+    bus.write_block_data(DEVICE_ADDRESS, 0x00, list(DISABLE.to_bytes(4, byteorder='big')))
