@@ -2,15 +2,15 @@
 #include <Adafruit_DotStar.h>
 #include <Wire.h>
 
-#define nperRev 38400
+#define nperRev 240000 
 #define SLAVE_ADDRESS 0x08
 #define STEPENABLEPIN 1
 #define DIRPIN 3
 #define STEPPIN 4
 #define DATAPIN    7
 #define CLOCKPIN   8 
-#define DISABLE 65279
-#define ENABLE 65278
+#define DISABLE 2147483647
+#define ENABLE 2147483646
 
 AccelStepper stepper(AccelStepper::DRIVER, STEPPIN, DIRPIN);
 Adafruit_DotStar strip(1, DATAPIN, CLOCKPIN, DOTSTAR_BRG);
@@ -98,5 +98,9 @@ void receiveData(int bytecount)
   for (int i = 0; i < bytecount; i++) {
     raw_data[i] = Wire.read();
   }
-  rec_data=raw_data[2]*255+raw_data[3];
+  rec_data = 0;
+  rec_data += raw_data[2] << 24;
+  rec_data += raw_data[3] << 16;
+  rec_data += raw_data[4] << 8;
+  rec_data += raw_data[5];
 }
