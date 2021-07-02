@@ -9,4 +9,5 @@ HQZ.stl is the mount I designed to attach the HQ camera to the Pi Zero (probably
 
 tx is Feather M0 express with protowing for radio/gps attachemnt
 
-base is Pi Zero with proto hat to hold peripherals: miniTFT, trinket M0 (for stepper driver), radio
+base was Pi Zero with proto hat to hold peripherals: miniTFT, trinket M0 (for stepper driver), radio
+now Pi 3A+, proto hat now with buttons, sdd1306 oled, same trinket M0 (for stepper driver), radio
