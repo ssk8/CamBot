@@ -11,8 +11,6 @@ sudo make check
 sudo make install
 cd
 
-mkdir ~/rf24libs
-cd ~/rf24libs
 git clone https://github.com/tmrh20/RF24.git RF24
 cd RF24 
 ./configure --driver=SPIDEV
