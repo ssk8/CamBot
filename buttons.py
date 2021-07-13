@@ -35,6 +35,14 @@ class Buttons(object):
             return False
 
 
+    @property
+    def either(self):
+        if self._A_state or self._B_state:
+            return True
+        else:
+            return False
+
+
     def begin(self):
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self._A_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
