@@ -14,6 +14,7 @@ cd
 wget http://tmrh20.github.io/RF24Installer/RPi/install.sh
 chmod +x install.sh
 ./install.sh
+#install core, option 1 bcm2835 driver
 
 sudo apt install libboost-python-dev
 
