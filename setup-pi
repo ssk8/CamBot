@@ -2,19 +2,10 @@
 
 sudo apt install python3-pip vim git
 
-wget http://www.airspayce.com/mikem/bcm2835/bcm2835-1.69.tar.gz
-tar zxvf bcm2835-1.69.tar.gz
-cd bcm2835-1.69
-./configure
-make
-sudo make check
-sudo make install
-cd
-
 wget http://tmrh20.github.io/RF24Installer/RPi/install.sh
 chmod +x install.sh
 ./install.sh
-#install core, option 1 bcm2835 driver
+#install core, option 2
 
 sudo apt install libboost-python-dev
 
