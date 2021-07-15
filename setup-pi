@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#important: enable spi but do not connect devices untill AFTER install
 sudo apt install python3-pip vim git libboost-python-dev
 
 mkdir ~/rf24libs
