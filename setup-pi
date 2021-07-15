@@ -9,11 +9,9 @@ cd RF24
 ./configure --driver=SPIDEV
 make
 sudo make install
-
-cd rf24libs/RF24/pyRF24/
 cd pyRF24 
 python3 setup.py build
 sudo python3 setup.py install
-sudo python3 -m pip install pyserial pynmea2
+sudo python3 -m pip install pyserial pynmea2 luma.oled
 sudo apt install python3-picamera python3-pil python3-rpi.gpio python3-spidev python3-smbus
 # copy fonts in dropbox /home/curt/Dropbox/tnkerProjects/piTFT to /usr/share/fonts/
