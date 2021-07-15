@@ -11,10 +11,9 @@ sudo make check
 sudo make install
 cd
 
-git clone https://github.com/tmrh20/RF24.git RF24
-cd RF24 
-./configure --driver=SPIDEV
-make; sudo make install
+wget http://tmrh20.github.io/RF24Installer/RPi/install.sh
+chmod +x install.sh
+./install.sh
 
 sudo apt install libboost-python-dev
 
