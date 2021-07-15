@@ -2,10 +2,11 @@
 
 sudo apt install python3-pip vim git
 
-wget http://tmrh20.github.io/RF24Installer/RPi/install.sh
-chmod +x install.sh
-./install.sh
-#install core, option 2
+mkdir ~/rf24libs
+cd ~/rf24libs
+git clone https://github.com/tmrh20/RF24.git RF24
+cd RF24 
+./configure --driver=SPIDEV
 
 sudo apt install libboost-python-dev
 
