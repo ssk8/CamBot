@@ -18,6 +18,7 @@ chmod +x install.sh
 
 sudo apt install libboost-python-dev
 
+cd rf24libs/RF24/pyRF24/
 cd pyRF24 
 python3 setup.py build
 sudo python3 setup.py install
