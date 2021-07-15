@@ -1,14 +1,14 @@
 #!/bin/bash
 
-sudo apt install python3-pip vim git
+sudo apt install python3-pip vim git libboost-python-dev
 
 mkdir ~/rf24libs
 cd ~/rf24libs
 git clone https://github.com/tmrh20/RF24.git RF24
 cd RF24 
 ./configure --driver=SPIDEV
-
-sudo apt install libboost-python-dev
+make
+sudo make install
 
 cd rf24libs/RF24/pyRF24/
 cd pyRF24 
