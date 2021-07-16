@@ -5,18 +5,14 @@ from RF24 import RF24
 import RPi.GPIO as GPIO
 import struct
 from orientation import distance, bearing
-import smbus
 import picamera
 from time import sleep, time
 from os import system
 from subtitle import finish_subs
 from buttons import Buttons
+from stepper import send_step, step_enable
 
-n_per_rev = 240000 
-
-i2c_address = 0x08
-i2c_reg_mode = 0x00
-i2c_bus = smbus.SMBus(1)
+n_per_rev = 240000
 
 radio = RF24(17, 1)
 irq_gpio_pin = 27
@@ -76,17 +72,7 @@ def unpack_data(struct_data):
 
 
 def get_filename(data):
-    return f'/home/pi/Videos/{(data.time + timedelta(hours=-5)).strftime("%y%m%d%H%M%S")}'
-
-
-def send_step(n):
-    i2c_bus.write_block_data(i2c_address, i2c_reg_mode, list(divmod(n, 255)))
-
-
-def step_enable(enable):
-    DISABLE = 2147483647
-    ENABLE = 2147483646
-    send_step(enable*ENABLE or DISABLE)
+    return f'/home/pi/usb0/Videos/{(data.time + timedelta(hours=-5)).strftime("%y%m%d%H%M%S")}'
 
 
 def get_step_possition(base_gps, current_gps):
