@@ -11,18 +11,21 @@ from luma.oled.device import ssd1306
 from luma.core.interface.serial import i2c
 from luma.core.render import canvas
 
-menu = [
-    "timelapse", "track", "focus", "other", "quit"
-]
+
+oled = ssd1306(i2c(port=1, address=0x3C))
+font = ImageFont.truetype('/home/pi/FreePixel.ttf', 20)
+
+def oled_print(text):
+    with canvas(oled) as draw:
+        draw.text((0, 1), text=text, font=font, fill="white")
 
 
 def main():
-    oled = ssd1306(i2c(port=1, address=0x3C))
-    font = ImageFont.truetype("ChiKareGo.ttf", 32)
-
+    menu = [
+        "timelapse", "track", "focus", "other", "quit"
+    ]
     for text in menu:
-        with canvas(oled) as draw:
-            draw.text((0, 1), text=text, font=font, fill="white")
+        oled_print(text)
         sleep(2)
 
 

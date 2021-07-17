@@ -17,7 +17,7 @@ class Buttons(object):
     
     @property
     def A(self):
-        if self._A_state:
+        if self._A_state and not self._B_state:
             self._A_state = False
             return True
         else:
@@ -28,7 +28,7 @@ class Buttons(object):
 
     @property
     def B(self):
-        if self._B_state:
+        if self._B_state and not self._A_state:
             self._B_state = False
             return True
         else:
@@ -38,6 +38,15 @@ class Buttons(object):
     @property
     def either(self):
         if self._A_state or self._B_state:
+            return True
+        else:
+            return False
+
+    @property
+    def both(self):
+        if self._A_state and self._B_state:
+            self._A_state = False
+            self._B_state = False
             return True
         else:
             return False

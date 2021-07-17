@@ -107,27 +107,30 @@ def main():
     pos_lock = False
     button = Buttons()
 
-    while not (button.A and button.B):
+    while True:
         if current_rx != last_rx:
             current_gps_data = GPS_data(*unpack_data(current_rx))
             if not base_gps_data:
                 base_gps_data = current_gps_data
-            if button.A:
-                if pos_lock:
-                    print("possition lost")
-                    step_enable(False)
-                    pos_lock = False
-                else:
-                    print("lock possition")
-                    send_step(get_step_possition(base_gps_data, current_gps_data))
-                    step_enable(True)
-                    pos_lock = True
-                sleep(1)
-            if button.B:
-                base_gps_data = current_gps_data
-                #b_lat, b_lon = local_gps.get_latlon(local_gps_dev)
-                #base_gps_data = GPS_data(latitude=b_lat, longitude=b_lon)
-                print("based")
+            if button.either:
+                if button.both:
+                    break
+                if button.A:
+                    if pos_lock:
+                        print("possition lost")
+                        step_enable(False)
+                        pos_lock = False
+                    else:
+                        print("lock possition")
+                        send_step(get_step_possition(base_gps_data, current_gps_data))
+                        step_enable(True)
+                        pos_lock = True
+                    sleep(1)
+                if button.B:
+                    base_gps_data = current_gps_data
+                    #b_lat, b_lon = local_gps.get_latlon(local_gps_dev)
+                    #base_gps_data = GPS_data(latitude=b_lat, longitude=b_lon)
+                    print("based")
             if pos_lock and current_gps_data.button1 and not last_button1:
                 global v_data
                 v_data = [time(), 1]
@@ -140,9 +143,9 @@ def main():
                 last_button1 = current_gps_data.button1
                 finish_subs(filename)
                 print('stopped recording')
- #              system(f'ffmpeg -i {filename}.h264 -i {filename}.srt -vcodec copy -c:s mov_text {filename}.mp4')
- #              print("wrote mp4")
- #              system(f'rm {filename}.h264')
+            #    system(f'ffmpeg -i {filename}.h264 -i {filename}.srt -vcodec copy -c:s mov_text {filename}.mp4')
+            #    print("wrote mp4")
+            #    system(f'rm {filename}.h264')
             if camera.recording:
                 move_camera(base_gps_data, current_gps_data)
                 annotate(camera, base_gps_data, current_gps_data, filename)
@@ -151,6 +154,7 @@ def main():
     step_enable(False)
     camera.close()
     print(f'\ngoodbye')
+    quit()
     #system('sudo shutdown now -h')
 
 
