@@ -1,5 +1,6 @@
 #!/bin/bash
 #important: enable spi but do not connect devices untill AFTER install
+#try setting GPU memory to 0 for python radio driver build. set to 256mb after install
 sudo apt install python3-pip vim git libboost-python-dev python3-picamera python3-pil python3-smbus
 sudo python3 -m pip install pyserial pynmea2 luma.oled
 mkdir ~/rf24libs
