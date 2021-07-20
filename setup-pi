@@ -8,7 +8,7 @@ git clone https://github.com/tmrh20/RF24.git RF24
 cd RF24 
 ./configure --driver=SPIDEV
 make
-sudo make insudo stall
+sudo make install
 cd pyRF24 
 python3 setup.py build
 sudo python3 setup.py install
