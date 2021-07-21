@@ -4,6 +4,7 @@ from itertools import cycle
 import subprocess
 import os
 from time import sleep
+from track import track
 
 
 button = Buttons()
@@ -18,9 +19,9 @@ def timelapse():
     print("the time lapse")
     
 
-def track():
+def start_track():
     print("tracking")
-    os.system('python3 /home/pi/CamBot/oled_track.py')
+    track(button)
 
 
 def disp_ip():
@@ -50,14 +51,20 @@ def ui_loop(menu):
             sleep(.5)
 
 
+def quit_ui():
+    oled_print("goodbye")
+    sleep(1)
+    quit()
+
 def main():
 
     main_menu = {
     "focus":focus, 
     "timelapse":timelapse,
-    "track":track, 
+    "track":start_track, 
     "ip address":disp_ip,
-    "shutdown":shutdown
+    "shutdown":shutdown,
+    "quit":quit_ui,
     }
 
     ui_loop(main_menu)
@@ -67,4 +74,6 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        pass
+        print(f"\ndone")
+    finally:
+        GPIO.cleanup()

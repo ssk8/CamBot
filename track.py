@@ -5,39 +5,21 @@ from RF24 import RF24
 import RPi.GPIO as GPIO
 import struct
 from orientation import distance, bearing
-import smbus
 import picamera
-#import local_gps
 from time import sleep, time
 from os import system
 from subtitle import finish_subs
+from stepper import send_step, step_enable
+from oled import oled_print
 
-n_per_rev = 3200*4*3
 
-local_gps_dev = '/dev/ttyS0'
-
-i2c_address = 0x08
-i2c_reg_mode = 0x00
-i2c_bus = smbus.SMBus(1)
+n_per_rev = 240000
 
 radio = RF24(17, 1)
 irq_gpio_pin = 27
 pipes = [0xF0F0F0F0E1, 0xF0F0F0F0D2]
 struct_format = 'ffIIhhi????'
 current_rx = bytearray()
-
-A, B = 23, 24
-GPIO.setmode(GPIO.BCM)
-for pins in (A, B):
-    GPIO.setup(pins, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-
-def buttonA():
-    return GPIO.input(A) == GPIO.LOW
-
-
-def buttonB():
-    return GPIO.input(B) == GPIO.LOW
 
 
 class GPS_data():
@@ -94,16 +76,6 @@ def get_filename(data):
     return f'/home/pi/Videos/{(data.time + timedelta(hours=-5)).strftime("%y%m%d%H%M%S")}'
 
 
-def send_step(n):
-    i2c_bus.write_block_data(i2c_address, i2c_reg_mode, list(divmod(n, 255)))
-
-
-def step_enable(enable):
-    DISABLE = 65279
-    ENABLE = 65278
-    send_step(enable*ENABLE or DISABLE)
-
-
 def get_step_possition(base_gps, current_gps):
     pos = int(bearing(base_gps, current_gps)/360*n_per_rev)
     return pos
@@ -128,34 +100,22 @@ def annotate(cam, base, cur, filename):
     v_data[1] += 1
 
 
-def main():
+def track(button):
     camera = start_camera()
     last_rx = bytearray()
     last_button1 = False
     base_gps_data = None
+    current_gps_data = None
     pos_lock = False
+    oled_print('start tracking')
 
-    while not (buttonA() and buttonB()):
+    while True:
         if current_rx != last_rx:
+            last_rx = current_rx
             current_gps_data = GPS_data(*unpack_data(current_rx))
             if not base_gps_data:
                 base_gps_data = current_gps_data
-            if buttonA():
-                if pos_lock:
-                    print("possition lost")
-                    step_enable(False)
-                    pos_lock = False
-                else:
-                    print("lock possition")
-                    send_step(get_step_possition(base_gps_data, current_gps_data))
-                    step_enable(True)
-                    pos_lock = True
-                sleep(1)
-            if buttonB():
-                base_gps_data = current_gps_data
-                #b_lat, b_lon = local_gps.get_latlon(local_gps_dev)
-                #base_gps_data = GPS_data(latitude=b_lat, longitude=b_lon)
-                print("based")
+
             if pos_lock and current_gps_data.button1 and not last_button1:
                 global v_data
                 v_data = [time(), 1]
@@ -163,24 +123,68 @@ def main():
                 filename = get_filename(current_gps_data)
                 camera.start_recording(f"{filename}.h264")
                 print('recording')
+                oled_print('recording')
             elif not current_gps_data.button1 and last_button1:
                 camera.stop_recording()
                 last_button1 = current_gps_data.button1
                 finish_subs(filename)
                 print('stopped recording')
- #              system(f'ffmpeg -i {filename}.h264 -i {filename}.srt -vcodec copy -c:s mov_text {filename}.mp4')
- #              print("wrote mp4")
- #              system(f'rm {filename}.h264')
+                oled_print('stopped recording')
+            #    system(f'ffmpeg -i {filename}.h264 -i {filename}.srt -vcodec copy -c:s mov_text {filename}.mp4')
+            #    print("wrote mp4")
+            #    system(f'rm {filename}.h264')
             if camera.recording:
                 move_camera(base_gps_data, current_gps_data)
                 annotate(camera, base_gps_data, current_gps_data, filename)
-                last_rx = current_rx
+                
+        if button.either:
+            if button.both:
+                break
+            if button.A:
+                if pos_lock:
+                    print("possition lost")
+                    oled_print("possition lost")
+                    step_enable(False)
+                    pos_lock = False
+                else:
+                    if current_gps_data:
+                        print("lock possition")
+                        oled_print("lock possition")
+                        send_step(get_step_possition(base_gps_data, current_gps_data))
+                        step_enable(True)
+                        pos_lock = True
+                    else:
+                        print('no possition')
+                        oled_print('no possition')
+                sleep(1)
+            if button.B:
+                if current_gps_data:
+                    base_gps_data = current_gps_data
+                    print("based")                    
+                    oled_print("based")                    
+                else:
+                    print('no possition for base')
+                    oled_print('no possition for base')
+                sleep(1)
 
     step_enable(False)
     camera.close()
-    print(f'\ngoodbye')
-    system('sudo shutdown now -h')
+    print(f'\nend tracking')
+    oled_print(f'end tracking')
+    sleep(1)
+
+
+def main():
+    from buttons import Buttons
+    button = Buttons()
+    track(button)
+
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print(f"\ndone")
+    finally:
+        GPIO.cleanup() 
