@@ -42,13 +42,10 @@ def ui_loop(menu):
     current_item = next(item_cycle)
     while True:
         oled_print(f'{current_item}')
-        sleep(.2)
         if button.A:
             current_item = next(item_cycle)
-            sleep(.5)
         if button.B:
             menu[current_item]()
-            sleep(.5)
 
 
 def quit_ui():
@@ -76,4 +73,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print(f"\ndone")
     finally:
-        GPIO.cleanup()
+        pass

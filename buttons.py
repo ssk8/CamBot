@@ -1,5 +1,5 @@
 import RPi.GPIO as GPIO
-from time import sleep
+from time import sleep, time
 
 
 class Buttons(object):
@@ -10,26 +10,32 @@ class Buttons(object):
         self._B_pin = B_pin
         self._A_state = False
         self._B_state = False
+        self._A_last_true = time()
+        self._B_last_true = time()
         self.begin()
 
     def button_A_event(self, channel):
-        self._A_state = True
+        if (time()-self._A_last_true)>.5:
+            self._A_state = True
     
     @property
     def A(self):
         if self._A_state and not self._B_state:
             self._A_state = False
+            self._A_last_true = time()
             return True
         else:
             return False
 
     def button_B_event(self, channel):
-        self._B_state = True
+        if (time()-self._B_last_true)>.5:
+            self._B_state = True
 
     @property
     def B(self):
         if self._B_state and not self._A_state:
             self._B_state = False
+            self._B_last_true = time()
             return True
         else:
             return False
@@ -47,10 +53,11 @@ class Buttons(object):
         if self._A_state and self._B_state:
             self._A_state = False
             self._B_state = False
+            self._A_last_true = time()
+            self._B_last_true = time()
             return True
         else:
             return False
-
 
     def begin(self):
         GPIO.setmode(GPIO.BCM)
@@ -58,6 +65,7 @@ class Buttons(object):
         GPIO.add_event_detect(self._A_pin, GPIO.FALLING, callback=self.button_A_event, bouncetime=200)
         GPIO.setup(self._B_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.add_event_detect(self._B_pin, GPIO.FALLING, callback=self.button_B_event, bouncetime=200)
+
 
 def main():
     button = Buttons()
