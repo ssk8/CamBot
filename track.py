@@ -57,15 +57,13 @@ def start_radio():
 start_radio()
 
 
-def start_camera():
-    camera = picamera.PiCamera()
+def set_camera(camera):
     camera.resolution = (1920, 1080)
     camera.framerate = 25
     camera.video_stabilization = True
     camera.annotate_foreground = picamera.Color('black')
     camera.annotate_text_size = 18
     camera.annotate_background = picamera.Color('white')
-    return camera
 
 
 def unpack_data(struct_data):
@@ -100,8 +98,8 @@ def annotate(cam, base, cur, filename):
     v_data[1] += 1
 
 
-def track(button):
-    camera = start_camera()
+def track(button, camera):
+    set_camera(camera)
     last_rx = bytearray()
     last_button1 = False
     base_gps_data = None
@@ -168,7 +166,6 @@ def track(button):
                 sleep(1)
 
     step_enable(False)
-    camera.close()
     print(f'\nend tracking')
     oled_print(f'end tracking')
     sleep(1)
@@ -177,7 +174,11 @@ def track(button):
 def main():
     from buttons import Buttons
     button = Buttons()
-    track(button)
+    from picamera import PiCamera
+    camera = PiCamera()
+    track(button, camera)
+    camera.close()
+
 
 
 
