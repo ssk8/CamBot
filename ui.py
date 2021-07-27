@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from oled import oled_print
 from buttons import Buttons
 from itertools import cycle
@@ -9,24 +11,22 @@ from stepper import send_step, step_enable
 from picamera import PiCamera
 
 
-def focus(): 
+def focus(button, camera): 
     camera.close()
     oled_print("focus now")
     subprocess.run("raspistill -t 20000 -fw -p 0,0,1280,720", shell=True)
     camera = PiCamera()
     camera.start_preview()
 
-def timelapse():
-    print("the time lapse")
-    
+def timelapse(button, camera):
+    oled_print("not yet")    
 
-def start_track():
+def start_track(button, camera):
     camera.stop_preview()
     track(button, camera)
     camera.start_preview()
 
-
-def rotate(clockwise=True):
+def rotate(button, camera, clockwise=True):
     start = time()
     send_step(0)
     step_enable(True)
@@ -38,24 +38,27 @@ def rotate(clockwise=True):
     step_enable(False)
 
 
-def counterclockwise():
-    rotate(False)
+def counterclockwise(button, camera):
+    rotate(button, camera, False)
 
 
-def disp_ip():
+def disp_ip(button, camera):
     ip = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True).decode("utf-8")
     oled_print(ip)
     sleep(2)
 
 
-def shutdown():
+def shutdown(button, camera):
     print("shuting down now")
+    camera.close()
     oled_print("shuting down")
     os.system('sudo shutdown now -h')
     sleep(5)
 
 
 def ui_loop(menu):
+    button = Buttons()
+    camera = PiCamera()
     item_cycle = cycle(menu)
     current_item = next(item_cycle)
     camera.start_preview()
@@ -64,17 +67,18 @@ def ui_loop(menu):
         if button.A:
             current_item = next(item_cycle)
         if button.B:
-            menu[current_item]()
+            menu[current_item](button, camera)
 
 
-def quit_ui():
-    camera.stop_preview()
+def quit_ui(button, camera):
+    #camera.stop_preview()
+    #camera.close()
     oled_print("goodbye")
     sleep(1)
     quit()
 
-def main():
 
+def main():
     main_menu = {
     #"focus":focus, 
     "clockwise":rotate,
@@ -83,15 +87,13 @@ def main():
     "track":start_track, 
     "ip address":disp_ip,
     "shutdown":shutdown,
-    "quit":quit_ui,
+    #"quit":quit_ui,
     }
     ui_loop(main_menu)
 
 
 if __name__ == "__main__":
     try:
-        button = Buttons()
-        camera = PiCamera()
         main()
     except KeyboardInterrupt:
         print(f"\ndone")

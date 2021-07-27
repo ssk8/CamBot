@@ -11,6 +11,8 @@ from os import system
 from subtitle import finish_subs
 from stepper import send_step, step_enable
 from oled import oled_print
+from picamera import PiCamera
+
 
 
 n_per_rev = 240000
@@ -174,10 +176,12 @@ def track(button, camera):
 def main():
     from buttons import Buttons
     button = Buttons()
-    from picamera import PiCamera
     camera = PiCamera()
+
     track(button, camera)
     camera.close()
+
+    
 
 
 
