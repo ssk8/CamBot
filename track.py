@@ -1,18 +1,17 @@
 #!/usr/bin/python3
 
-from datetime import datetime, timedelta
-from RF24 import RF24
-import RPi.GPIO as GPIO
-import struct
-from orientation import distance, bearing
-import picamera
 from time import sleep, time
+from datetime import datetime, timedelta
 from os import system
+from pathlib import Path
+from RF24 import RF24
+import struct
+import picamera
+import RPi.GPIO as GPIO
+from orientation import distance, bearing
 from subtitle import finish_subs
 from stepper import send_step, step_enable
 from oled import oled_print
-from picamera import PiCamera
-
 
 
 n_per_rev = 240000
@@ -73,7 +72,13 @@ def unpack_data(struct_data):
 
 
 def get_filename(data):
-    return f'/home/pi/Videos/{(data.time + timedelta(hours=-5)).strftime("%y%m%d%H%M%S")}'
+    path = Path("/")
+    if '/mnt/fit/Videos' in [str(x) for x in (path / 'mnt' / 'fit').iterdir() if x.is_dir()]:
+        path = path / 'mnt' / 'fit' / 'Videos' 
+    else:
+        path = path / 'home' / 'pi' / 'Videos' 
+    print(f'this is the path {path}')
+    return f'{path}/{(data.time + timedelta(hours=-5)).strftime("%y%m%d%H%M%S")}'
 
 
 def get_step_possition(base_gps, current_gps):
@@ -176,7 +181,7 @@ def track(button, camera):
 def main():
     from buttons import Buttons
     button = Buttons()
-    camera = PiCamera()
+    camera = picamera.PiCamera()
 
     track(button, camera)
     camera.close()
