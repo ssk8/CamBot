@@ -9,6 +9,7 @@ from time import sleep, time
 from track import track
 from stepper import send_step, step_enable
 from picamera import PiCamera
+import containerize
 
 
 def focus(button, camera): 
@@ -56,6 +57,13 @@ def shutdown(button, camera):
     sleep(5)
 
 
+def containerize_fit(button, camera):
+    oled_print("trying...")
+    containerize.containerize('/mnt/fit/Videos/')
+    oled_print("DONE!")
+    sleep(1)    
+
+
 def ui_loop(menu):
     button = Buttons()
     camera = PiCamera()
@@ -87,6 +95,7 @@ def main():
     "track":start_track, 
     "ip address":disp_ip,
     "shutdown":shutdown,
+    "containerize":containerize_fit
     #"quit":quit_ui,
     }
     ui_loop(main_menu)
