@@ -20,7 +20,7 @@ class Buttons(object):
     
     @property
     def A(self):
-        if self._A_state and not self._B_state:
+        if self._A_state:
             self._A_state = False
             self._A_last_true = time()
             return True
@@ -33,7 +33,7 @@ class Buttons(object):
 
     @property
     def B(self):
-        if self._B_state and not self._A_state:
+        if self._B_state:
             self._B_state = False
             self._B_last_true = time()
             return True

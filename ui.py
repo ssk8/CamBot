@@ -10,6 +10,7 @@ from track import track
 from stepper import send_step, step_enable
 from picamera import PiCamera
 import containerize
+from time_lapse import tl_ui
 
 
 def focus(button, camera): 
@@ -19,8 +20,6 @@ def focus(button, camera):
     camera = PiCamera()
     camera.start_preview()
 
-def timelapse(button, camera):
-    oled_print("not yet")    
 
 def start_track(button, camera):
     camera.stop_preview()
@@ -91,7 +90,7 @@ def main():
     #"focus":focus, 
     "clockwise":rotate,
     "counterclockwise":counterclockwise,
-    "timelapse":timelapse,
+    "time-lapse":tl_ui,
     "track":start_track, 
     "ip address":disp_ip,
     "shutdown":shutdown,
@@ -103,6 +102,9 @@ def main():
 
 if __name__ == "__main__":
     try:
+        PID = str(os.getpid())
+        with open("/home/pi/app.pid", "w") as file:
+           file.write(PID)
         main()
     except KeyboardInterrupt:
         print(f"\ndone")

@@ -15,9 +15,10 @@ from luma.core.render import canvas
 oled = ssd1306(i2c(port=1, address=0x3C))
 font = ImageFont.truetype('/home/pi/FreePixel.ttf', 20)
 
-def oled_print(text):
+def oled_print(text, text2=""):
     with canvas(oled) as draw:
         draw.text((0, 1), text=text, font=font, fill="white")
+        draw.text((10, 41), text=text2, font=font, fill="white")
 
 
 def main():
