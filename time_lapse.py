@@ -28,7 +28,6 @@ def tl_ui(button, camera):
     camera.resolution = (1640, 1232)
     item_cycle = cycle(["still", "clockwise", "counterclockwise", "quit", ])
     current_item = next(item_cycle)
-    #camera.start_preview()
     last_time, n = time(), 0
     step = 120000 
     send_step(step)
@@ -48,7 +47,9 @@ def tl_ui(button, camera):
             if current_item!="still":   
                 step += (2)*(current_item=="clockwise" or -1) 
                 send_step(step)
-
+    camera.start_preview()
+    step_enable(False)
+    send_step(0)
 
 def main():
     from buttons import Buttons
