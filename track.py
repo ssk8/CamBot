@@ -73,8 +73,8 @@ def unpack_data(struct_data):
 
 def get_filename(data):
     path = Path("/")
-    if '/mnt/fit/Videos' in [str(x) for x in (path / 'mnt' / 'fit').iterdir() if x.is_dir()]:
-        path = path / 'mnt' / 'fit' / 'Videos' 
+    if '/mnt/usb0/Videos' in [str(x) for x in (path / 'mnt' / 'usb0').iterdir() if x.is_dir()]:
+        path = path / 'mnt' / 'usb0' / 'Videos' 
     else:
         path = path / 'home' / 'pi' / 'Videos' 
     print(f'this is the path {path}')

@@ -17,4 +17,4 @@ def containerize(path_str: str):
         
 
 if __name__ == "__main__":
-    containerize('/mnt/fit/Videos/')
+    containerize('/mnt/usb0/Videos/')

@@ -56,9 +56,9 @@ def shutdown(button, camera):
     sleep(5)
 
 
-def containerize_fit(button, camera):
+def containerize_usb0(button, camera):
     oled_print("trying...")
-    containerize.containerize('/mnt/fit/Videos/')
+    containerize.containerize('/mnt/usb0/Videos/')
     oled_print("DONE!")
     sleep(1)    
 
@@ -94,7 +94,7 @@ def main():
     "track":start_track, 
     "ip address":disp_ip,
     "shutdown":shutdown,
-    "containerize":containerize_fit
+    "containerize":containerize_usb0
     #"quit":quit_ui,
     }
     ui_loop(main_menu)

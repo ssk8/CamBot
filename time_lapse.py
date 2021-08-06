@@ -13,8 +13,8 @@ from stepper import send_step, step_enable
 
 def get_path():
     path = Path("/")
-    if '/mnt/fit/Videos' in [str(x) for x in (path / 'mnt' / 'fit').iterdir() if x.is_dir()]:
-        path = path / 'mnt' / 'fit' / 'Pictures' 
+    if '/mnt/usb0/Videos' in [str(x) for x in (path / 'mnt' / 'usb0').iterdir() if x.is_dir()]:
+        path = path / 'mnt' / 'usb0' / 'Pictures' 
     else:
         path = path / 'home' / 'pi' / 'Pictures' 
     path = path / f'{datetime.now().strftime("%y%m%d%H%M%S")}'
