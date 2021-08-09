@@ -18,7 +18,7 @@ font = ImageFont.truetype('/home/pi/FreePixel.ttf', 20)
 def oled_print(text, text2=""):
     with canvas(oled) as draw:
         draw.text((0, 1), text=text, font=font, fill="white")
-        draw.text((10, 41), text=text2, font=font, fill="white")
+        draw.text((0, 41), text=text2, font=font, fill="white")
 
 
 def main():

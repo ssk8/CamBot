@@ -2,7 +2,7 @@
 
 from time import sleep, time
 from datetime import datetime, timedelta
-from os import system
+import os, csv
 from pathlib import Path
 from RF24 import RF24
 import struct
@@ -105,6 +105,19 @@ def annotate(cam, base, cur, filename):
     v_data[1] += 1
 
 
+def get_target_coords_from_file() -> GPS_data:
+    targets_coords_path = Path('/home/pi/target_coords.csv')
+    places = dict()
+    with open(targets_coords_path, newline='') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            place, lat, lon = row
+            places[place] = (float(lat), float(lon))
+    place = places[list(places.keys())[-1]]
+    print(place)
+    return GPS_data(latitude=place[0], longitude=place[1]) 
+
+
 def track(button, camera):
     set_camera(camera)
     last_rx = bytearray()
@@ -135,9 +148,9 @@ def track(button, camera):
                 finish_subs(filename)
                 print('stopped recording')
                 oled_print('stopped recording')
-            #    system(f'ffmpeg -i {filename}.h264 -i {filename}.srt -vcodec copy -c:s mov_text {filename}.mp4')
+            #    os.system(f'ffmpeg -i {filename}.h264 -i {filename}.srt -vcodec copy -c:s mov_text {filename}.mp4')
             #    print("wrote mp4")
-            #    system(f'rm {filename}.h264')
+            #    os.system(f'rm {filename}.h264')
             if camera.recording:
                 move_camera(base_gps_data, current_gps_data)
                 annotate(camera, base_gps_data, current_gps_data, filename)
@@ -152,15 +165,15 @@ def track(button, camera):
                     step_enable(False)
                     pos_lock = False
                 else:
+                    distant_place = get_target_coords_from_file()
                     if current_gps_data:
-                        print("lock possition")
                         oled_print("lock possition")
-                        send_step(get_step_possition(base_gps_data, current_gps_data))
+                        #print(f"lock possition for {current_gps_data.latitude, current_gps_data.longitude}")
+                        send_step(get_step_possition(base_gps_data, distant_place))
                         step_enable(True)
                         pos_lock = True
                     else:
-                        print('no possition')
-                        oled_print('no possition')
+                        oled_print("no current", "base possition")
                 sleep(1)
             if button.B:
                 if current_gps_data:
@@ -182,13 +195,8 @@ def main():
     from buttons import Buttons
     button = Buttons()
     camera = picamera.PiCamera()
-
     track(button, camera)
     camera.close()
-
-    
-
-
 
 
 if __name__ == "__main__":

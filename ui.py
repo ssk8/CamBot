@@ -109,4 +109,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print(f"\ndone")
     finally:
-        pass
+        os.remove("/home/pi/app.pid")

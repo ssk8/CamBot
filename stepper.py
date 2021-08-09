@@ -16,6 +16,7 @@ def step_enable(enable):
 
 
 def main():
+    step_enable(False)
     send_step(0)
     step_enable(True)
 

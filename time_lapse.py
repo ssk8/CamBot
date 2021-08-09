@@ -45,7 +45,7 @@ def tl_ui(button, camera):
             last_time = time()
             camera.capture(f'{path}/img{str(n).zfill(5)}.jpg')
             if current_item!="still":   
-                step += (2)*(current_item=="clockwise" or -1) 
+                step += (1)*(current_item=="clockwise" or -1) 
                 send_step(step)
     camera.start_preview()
     step_enable(False)
@@ -70,3 +70,4 @@ if __name__ == "__main__":
     finally:
         step_enable(False)
         send_step(0)
+        os.remove("/home/pi/timelapse.pid")
