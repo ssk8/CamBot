@@ -60,7 +60,7 @@ start_radio()
 
 def set_camera(camera):
     camera.resolution = (1920, 1080)
-    camera.framerate = 25
+    camera.framerate = 30
     camera.video_stabilization = True
     camera.annotate_foreground = picamera.Color('black')
     camera.annotate_text_size = 18
