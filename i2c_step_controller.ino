@@ -35,7 +35,7 @@ void setup()
   stepper.setPinsInverted(false, false, true);
   stepper.disableOutputs ();
   enabled = false;
-  stepper.setMaxSpeed(nperRev/2);
+  stepper.setMaxSpeed(nperRev);
   stepper.setAcceleration(nperRev/20);
   stepper.setCurrentPosition(0);
 
@@ -63,8 +63,15 @@ void loop()
     { 
         next_pos = rec_data;
         if (enabled) {
+
           if (abs(stepper.currentPosition()-next_pos)>abs(stepper.currentPosition()-next_pos+nperRev)) next_pos-=nperRev;
           else if (abs(stepper.currentPosition()-next_pos)>abs(stepper.currentPosition()-next_pos-nperRev)) next_pos+=nperRev;
+         
+          long dist = abs(stepper.currentPosition()-next_pos);
+          if (dist > 2000) stepper.setAcceleration(10000);
+          else if (dist < 200) stepper.setAcceleration(200);
+          else stepper.setAcceleration(dist*5-800);
+          
           stepper.moveTo(next_pos);
       }
         else {
