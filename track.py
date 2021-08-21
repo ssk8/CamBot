@@ -12,6 +12,7 @@ from orientation import distance, bearing
 from subtitle import finish_subs
 from stepper import send_step, step_enable
 from oled import oled_print
+from itertools import cycle
 
 
 n_per_rev = 240000
@@ -105,7 +106,8 @@ def annotate(cam, base, cur, filename):
     v_data[1] += 1
 
 
-def get_target_coords_from_file() -> GPS_data:
+def get_target_coords(button, camera) -> GPS_data:
+    camera.start_preview()
     targets_coords_path = Path('/home/pi/target_coords.csv')
     places = dict()
     with open(targets_coords_path, newline='') as f:
@@ -113,8 +115,19 @@ def get_target_coords_from_file() -> GPS_data:
         for row in reader:
             place, lat, lon = row
             places[place] = (float(lat), float(lon))
-    place = places[list(places.keys())[-1]]
-    print(place)
+
+    place_cycle = cycle(places.keys())
+    current_place = next(place_cycle)
+    while not button.B:
+        oled_print(current_place)
+        sleep(.1)
+        if button.A:
+            current_place = next(place_cycle)
+            sleep(.1)
+
+    place = places[current_place]
+    camera.stop_preview()
+    sleep(1)
     return GPS_data(latitude=place[0], longitude=place[1]) 
 
 
@@ -165,7 +178,7 @@ def track(button, camera):
                     step_enable(False)
                     pos_lock = False
                 else:
-                    distant_place = get_target_coords_from_file()
+                    distant_place = get_target_coords(button, camera)
                     if current_gps_data:
                         oled_print("lock possition")
                         #print(f"lock possition for {current_gps_data.latitude, current_gps_data.longitude}")
